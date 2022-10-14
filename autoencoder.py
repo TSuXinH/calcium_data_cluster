@@ -71,10 +71,6 @@ class AETest1(nn.Module):
         return lat, dec
 
 
-def cal_err(recon, raw):
-    return np.mean((recon - raw) ** 2)
-
-
 class CustomDataset(Dataset):
     def __init__(self, neu_data, trans=None):
         super().__init__()
@@ -174,10 +170,5 @@ def test(model, test_loader, args):
     return np.squeeze(recon_array), latent_array
 
 
-def normalize(data):
-    if len(data.shape) == 1:
-        return (data - np.min(data)) / (np.max(data) - np.min(data)) if np.max(data) != np.min(data) else data
-    else:
-        res = (data - np.min(data, axis=-1).reshape(-1, 1)) / (np.max(data, axis=-1).reshape(-1, 1) - np.min(data, axis=-1).reshape(-1, 1))
-        res[np.isnan(res)] = 0
-        return res
+def cal_err(recon, raw):
+    return np.mean((recon - raw) ** 2)

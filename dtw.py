@@ -1,11 +1,7 @@
-import numpy as np
-from sklearn.manifold import TSNE
-from tslearn.clustering import TimeSeriesKMeans
-from tslearn.generators import random_walks
 from sklearn.cluster import KMeans
 
 from base_data_two_photo import *
-from utils import normalize
+from utils.util import normalize
 
 
 f_test = f_dff[:, final_index[0][0]: final_index[39][1]]

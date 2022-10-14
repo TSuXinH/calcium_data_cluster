@@ -2,13 +2,12 @@ import matplotlib.pyplot as plt
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from easydict import EasyDict as edict
-import sys
 from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
 
 from base_data_two_photo import *
 from utils import visualize_3d_cluster, visualize_sampled_spikes
-from autoencoder import AutoEncoder, CustomDataset, train, ZScore, test, normalize, AETest1, cal_err
+from autoencoder import CustomDataset, train, ZScore, test, normalize, AETest1, cal_err
 
 
 def show_reconstruction(f_dff, recon, idx, trans):

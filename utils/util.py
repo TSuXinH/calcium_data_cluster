@@ -1,11 +1,13 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
 
 
 def z_score(data):
-    return (data - np.mean(data)) / np.std(data)
+    if len(data.shape) == 1:
+        return (data - np.mean(data)) / np.std(data) if np.std(data).item() != 0 else data
+    else:
+        res = (data - np.mean(data, axis=-1)) / np.std(data, axis=-1)
+        res[np.isnan(res)] = 0
+        return res
 
 
 def normalize(data):

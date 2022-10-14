@@ -1,7 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
 from easydict import EasyDict
-from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
 from sklearn.mixture import GaussianMixture as GMM
 import matplotlib.pyplot as plt

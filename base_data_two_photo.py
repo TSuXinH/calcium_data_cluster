@@ -5,7 +5,7 @@ from copy import deepcopy
 from scipy import io as scio
 from os.path import join as join
 
-from plot import visualize_firing_curves, config_dict
+from utils import visualize_firing_curves, generate_firing_curve_config
 
 
 def get_data(path):
@@ -71,21 +71,32 @@ f_mean_stim = f_long_stim.reshape(-1, 360, 5).mean(-1)
 
 trial_stim_index = np.concatenate([final_index[:: 40, 0], final_index[39:: 40, 1]]).reshape(2, 5).T
 
-config = deepcopy(config_dict)
-config['stim_kind'] = 'single_stim'
-config['stim_index'] = trial_stim_index
-visualize_firing_curves(f_dff[: 50], config)
+f_trial1 = f_dff[:, final_index[0, 0]: final_index[39, 1]]
+tmp_stim_index1 = final_index[: 40]
+stim_index = []
+for idx in range(4):
+    stim_index.append(tmp_stim_index1[idx:: 4].reshape(1, 10, -1))
+trial1_stim_index = np.concatenate(stim_index, axis=0)
+
+# config = generate_firing_curve_config()
+# config['stim_kind'] = 'single_stim'
+# config['stim_index'] = trial_stim_index
+# visualize_firing_curves(f_dff[: 50], config)
+
+# config1 = generate_firing_curve_config()
+# config1['multi_stim_index'] = stim_index
+# config1['stim_kind'] = 'multi_stim'
+# x, y = visualize_firing_curves(f_trial1[: 50], config1)
 
 # trial_time0 = final_index[:: 40, 0].reshape(1, -1)
 # trial_time1 = final_index[39:: 40, 1].reshape(1, -1)
 # trial_time = np.concatenate([trial_time0, trial_time1], axis=0).T
-#
+
 # f_trial1 = f_dff[:, trial_time[0][0]: trial_time[0][1]]
 # f_trial_list = []
 # for idx in range(len(trial_time)):
 #     f_trial_list.append(f_dff[:, trial_time[idx][0]: trial_time[idx][1]])
 # trial1_stim = final_index[: 40]
-
 
 # import torch
 # z = torch.zeros([32, 9330, 1])

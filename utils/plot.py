@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.collections as collections
-import cufflinks
+
 
 # this dictionary is useful for visualization
 color_map = {
@@ -15,30 +15,50 @@ color_map = {
     7: 'pink',
 }
 
-config_dict = {
-    'axis': False,
-    'stim_kind': 'wo_stim',
-    'title': '',
-    'stim_index': 0,
-    'single_stim_color': color_map[1],
-    'multi_stim_color_map': color_map
-}
+
+def generate_firing_curve_config():
+    firing_curve_config = {
+        'axis': False,
+        'stim_kind': 'wo_stim',
+        'title': '',
+        'stim_index': 0,
+        'multi_stim_index': 0,
+        'single_stim_color': color_map[1],
+        'color_map': color_map
+    }
+    return firing_curve_config
+
+
+def generate_cluster_config():
+    cluster_config = {
+        'dim': 2,
+        'title': '',
+        'color_map': color_map
+    }
+    return cluster_config
 
 
 def visualize_firing_curves(firing_mat, config, trans=None):
+    """
+    Visualize neuron firing curves:
+    `config` is a dictionary which may contain:
+        `axis`, `stim_kind`, `title`, `stim_index`, `multi_stim_index`, `single_stim_color`, `color_map`
+    `stim_index` should contain a matrix whose shape is [N, 2].
+    `multi_stim_index` should contain a matrix whose shape is [k, N, 2], where k is the stimulus kind.
+    """
     if len(firing_mat.shape) == 1:
         firing_mat = firing_mat.reshape(1, -1)
     if 'axis' not in config:
         raise ValueError('key `axis` is not covered. ')
     if 'title' not in config:
         raise ValueError('key `title` is not covered. ')
-    if 'stim_kind' in config_dict:
+    if 'stim_kind' in config:
         if config['stim_kind'] == 'wo_stim':
             visualize_firing_curves_wo_stim(firing_mat, config, trans)
         elif config['stim_kind'] == 'single_stim':
             visualize_firing_curves_single_stim(firing_mat, config, trans)
         elif config['stim_kind'] == 'multi_stim':
-            visualize_firing_curves_multi_stim(firing_mat, config, trans)
+            return visualize_firing_curves_multi_stim(firing_mat, config, trans)
         else:
             raise NotImplementedError
     else:
@@ -66,7 +86,7 @@ def visualize_firing_curves_single_stim(firing_mat, config, trans=None):
         return ValueError('key `stim_index` is not covered.')
     stim_index = config['stim_index']
     if 'shift' in config:
-        stim_index -= config['shift']
+        stim_index += config['shift']
     if len(firing_mat.shape) == 1:
         firing_mat = firing_mat.reshape(1, -1)
     t = np.arange(firing_mat.shape[-1])
@@ -85,29 +105,61 @@ def visualize_firing_curves_single_stim(firing_mat, config, trans=None):
 
 
 def visualize_firing_curves_multi_stim(firing_mat, config, trans=None):
-    pass
+    if 'multi_stim_index' not in config:
+        return ValueError('key `multi_stim_index` is not covered.')
+    stim_index = config['multi_stim_index']
+    if 'shift' in config:
+        stim_index += config['shift']
+    stim_indicator = np.ones(firing_mat.shape[-1]) * -1
+    t = np.arange(firing_mat.shape[-1])
+    for idx in range(len(stim_index)):
+        for idx_inner in range(stim_index.shape[1]):
+            stim_indicator[stim_index[idx, idx_inner, 0]: stim_index[idx, idx_inner, 1]] = idx
+    fig, ax = plt.subplots(len(firing_mat), 1)
+    for idx in range(len(firing_mat)):
+        piece = trans(firing_mat[idx]) if trans is not None else firing_mat[idx]
+        ax[idx].plot(piece)
+        for idx_inner in range(len(stim_index)):
+            collection = collections.BrokenBarHCollection.span_where(t, ymin=min(np.min(piece), 0), ymax=max(np.max(piece), 1), where=stim_indicator == idx_inner, facecolor=config['color_map'][idx_inner], alpha=0.2)
+            ax[idx].add_collection(collection)
+        ax[idx].axis(config['axis'])
+    plt.suptitle(config['title'])
+    plt.show(block=True)
+    return stim_indicator, stim_index
 
 
-def visualize_2d_cluster(clus_num, res, kmeans_result, title=''):
+def visualize_cluster(clus_num, dim_rdc_res, clus_res, config):
+    """
+    Visualize cluster result:
+    `config` is a dictionary which may contain:
+        `dim`, `title`, `color_map`
+    """
+    if config['dim'] == 2:
+        return visualize_2d_cluster(clus_num, dim_rdc_res, clus_res, config)
+    elif config['dim'] == 3:
+        return visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config)
+    else:
+        raise NotImplementedError
+
+
+def visualize_2d_cluster(clus_num, dim_rdc_res, clus_res, config):
     for item in range(clus_num):
-        index = np.where(kmeans_result == item)[0]
-        tmp_result = res[index]
-        color = color_map[item]
+        index = np.where(clus_res == item)[0]
+        tmp_result = dim_rdc_res[index]
+        color = config['color_map'][item]
         plt.scatter(tmp_result[:, 0], tmp_result[:, 1], c=color, label='cluster {}'.format(item), s=6)
-    if title:
-        plt.title(title)
+        plt.title(config['title'])
     plt.legend()
     plt.show(block=True)
 
 
-def visualize_3d_cluster(cluster, res, kmeans_result, title=''):
+def visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config):
     ax = plt.subplot(111, projection='3d')
-    for item in range(cluster):
-        index = np.where(kmeans_result == item)[0]
-        tmp_result = res[index]
-        color = color_map[item]
+    for item in range(clus_num):
+        index = np.where(clus_res == item)[0]
+        tmp_result = dim_rdc_res[index]
+        color = config['color_map'][item]
         ax.scatter(tmp_result[:, 0], tmp_result[:, 1], tmp_result[:, 2], c=color, label='cluster {}'.format(item))
-    if title:
-        ax.set_title(title)
+        ax.set_title(config['title'])
     plt.legend()
     plt.show(block=True)
