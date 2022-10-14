@@ -6,9 +6,10 @@ from sklearn.manifold import TSNE
 from sklearn.mixture import GaussianMixture as GMM
 import matplotlib.pyplot as plt
 
+from utils import visualize_sampled_spikes, visualize_2d_cluster
 from DTCR import DTCR, z_score, test, normalize
 from DTCR_train import DTCRDataset
-from base_data import *
+from base_data_two_photo import *
 
 
 def show_reconstruction(f_dff, recon, idx, trans):
@@ -66,7 +67,7 @@ res_gmm = model_gmm.fit_predict(lat)
 model_tsne = TSNE(n_components=2)
 res_tsne = model_tsne.fit_transform(lat)
 
-visualize_cluster_2d(4, res_tsne, res_gmm)
+visualize_2d_cluster(4, res_tsne, res_gmm)
 visualize_sampled_spikes(f_dff, res_gmm, 4)
 plt.scatter(res_tsne[:, 0], res_tsne[:, 1])
 plt.show()

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from base_data import *
+from base_data_two_photo import *
 
 component = min(f_long_stim.shape)
 pca1 = PCA(n_components=component)

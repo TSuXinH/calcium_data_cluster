@@ -3,8 +3,9 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
 
-from base_data import *
+from base_data_two_photo import *
 from DTCR import DTCR, DTCRDataset, z_score, normalize, Train
 
 
@@ -51,4 +52,7 @@ if __name__ == '__main__':
 
     print('start training.')
     train = Train(model, loader, cr_recon, optimizer, args)
-    train.train()
+    loss_list = train.train()
+
+    plt.plot(loss_list)
+    plt.show(block=True)

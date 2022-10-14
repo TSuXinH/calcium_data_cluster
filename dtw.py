@@ -4,7 +4,7 @@ from tslearn.clustering import TimeSeriesKMeans
 from tslearn.generators import random_walks
 from sklearn.cluster import KMeans
 
-from base_data import *
+from base_data_two_photo import *
 from utils import normalize
 
 

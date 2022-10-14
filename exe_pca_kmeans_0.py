@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from base_data import *
+from base_data_two_photo import *
 
 pca_2d = PCA(n_components=2, whiten=True)
 pca_2d_res = pca_2d.fit_transform(f_long_stim)

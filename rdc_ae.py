@@ -6,7 +6,8 @@ import sys
 from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
 
-from base_data import *
+from base_data_two_photo import *
+from utils import visualize_3d_cluster, visualize_sampled_spikes
 from autoencoder import AutoEncoder, CustomDataset, train, ZScore, test, normalize, AETest1, cal_err
 
 
@@ -67,5 +68,5 @@ res_kmeans = k_means.fit_predict(rdc_res)
 dim_red_tsne = TSNE(n_components=3)
 res_tsne = dim_red_tsne.fit_transform(rdc_res)
 
-visualize_cluster_3d(clusters, res_tsne, res_kmeans, title='autoencoder normal')
+visualize_3d_cluster(clusters, res_tsne, res_kmeans, title='autoencoder normal')
 visualize_sampled_spikes(f_train, res_kmeans, clusters, show_all=True)
