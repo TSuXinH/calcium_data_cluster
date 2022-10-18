@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 import matplotlib.pyplot as plt
 import matplotlib.collections as collections
 
@@ -18,13 +19,15 @@ color_map = {
 
 def generate_firing_curve_config():
     firing_curve_config = {
+        'mat': 0,
         'axis': False,
         'stim_kind': 'wo_stim',
         'title': '',
         'stim_index': 0,
         'multi_stim_index': 0,
         'single_stim_color': color_map[1],
-        'color_map': color_map
+        'color_map': color_map,
+        'trans': None,
     }
     return firing_curve_config
 
@@ -33,51 +36,53 @@ def generate_cluster_config():
     cluster_config = {
         'dim': 2,
         'title': '',
-        'color_map': color_map
+        'color_map': color_map,
+        'sample_dict': False,
     }
     return cluster_config
 
 
-def visualize_firing_curves(firing_mat, config, trans=None):
+def visualize_firing_curves(config):
     """
     Visualize neuron firing curves:
-    `config` is a dictionary which may contain:
-        `axis`, `stim_kind`, `title`, `stim_index`, `multi_stim_index`, `single_stim_color`, `color_map`
+    `config` is a dictionary which contains:
+        `mat`, `axis`, `stim_kind`, `title`, `stim_index`, `multi_stim_index`,
+        `single_stim_color`, `color_map`, 'trans'
     `stim_index` should contain a matrix whose shape is [N, 2].
     `multi_stim_index` should contain a matrix whose shape is [k, N, 2], where k is the stimulus kind.
     """
-    if len(firing_mat.shape) == 1:
-        firing_mat = firing_mat.reshape(1, -1)
+    if len(config['mat'].shape) == 1:
+        config['mat'] = config['mat'].reshape(1, -1)
     if 'axis' not in config:
         raise ValueError('key `axis` is not covered. ')
     if 'title' not in config:
         raise ValueError('key `title` is not covered. ')
     if 'stim_kind' in config:
         if config['stim_kind'] == 'wo_stim':
-            visualize_firing_curves_wo_stim(firing_mat, config, trans)
+            visualize_firing_curves_wo_stim(config)
         elif config['stim_kind'] == 'single_stim':
-            visualize_firing_curves_single_stim(firing_mat, config, trans)
+            visualize_firing_curves_single_stim(config)
         elif config['stim_kind'] == 'multi_stim':
-            return visualize_firing_curves_multi_stim(firing_mat, config, trans)
+            return visualize_firing_curves_multi_stim(config)
         else:
             raise NotImplementedError
     else:
         raise ValueError('key `stim_kind` is not covered. ')
 
 
-def visualize_firing_curves_wo_stim(firing_mat, config, trans=None):
+def visualize_firing_curves_wo_stim(config):
     """ Visualize the firing curve of all the neurons without stimuli. """
-    length = len(firing_mat)
+    length = len(config['mat'])
     for idx in range(length):
         plt.subplot(length, 1, idx + 1)
-        piece = trans(firing_mat[idx]) if trans is not None else firing_mat[idx]
+        piece = config['trans'](config['mat'][idx]) if config['trans'] is not None else config['mat'][idx]
         plt.plot(piece)
         plt.axis(config['axis'])
     plt.title(config['title'])
     plt.show(block=True)
 
 
-def visualize_firing_curves_single_stim(firing_mat, config, trans=None):
+def visualize_firing_curves_single_stim(config):
     """
     Visualize the firing curve of all the neurons with single stimulus.
     The configuration dictionary should at least contain `stim_index`.
@@ -87,15 +92,13 @@ def visualize_firing_curves_single_stim(firing_mat, config, trans=None):
     stim_index = config['stim_index']
     if 'shift' in config:
         stim_index += config['shift']
-    if len(firing_mat.shape) == 1:
-        firing_mat = firing_mat.reshape(1, -1)
-    t = np.arange(firing_mat.shape[-1])
-    stim_fake = np.zeros(shape=(firing_mat.shape[-1],))
-    fig, ax = plt.subplots(len(firing_mat), 1)
+    t = np.arange(config['mat'].shape[-1])
+    stim_fake = np.zeros(shape=(config['mat'].shape[-1],))
+    fig, ax = plt.subplots(len(config['mat']), 1)
     for idx in range(len(stim_index)):
         stim_fake[stim_index[idx][0]: stim_index[idx][1]] = 1
-    for idx in range(len(firing_mat)):
-        piece = trans(firing_mat[idx]) if trans is not None else firing_mat[idx]
+    for idx in range(len(config['mat'])):
+        piece = config['trans'](config['mat'][idx]) if config['trans'] is not None else config['mat'][idx]
         ax[idx].plot(piece)
         collection = collections.BrokenBarHCollection.span_where(t, ymin=min(np.min(piece), 0), ymax=max(np.max(piece), 1), where=stim_fake > 0, facecolor=config['single_stim_color'], alpha=0.2)
         ax[idx].add_collection(collection)
@@ -104,20 +107,20 @@ def visualize_firing_curves_single_stim(firing_mat, config, trans=None):
     plt.show(block=True)
 
 
-def visualize_firing_curves_multi_stim(firing_mat, config, trans=None):
+def visualize_firing_curves_multi_stim(config):
     if 'multi_stim_index' not in config:
         return ValueError('key `multi_stim_index` is not covered.')
     stim_index = config['multi_stim_index']
     if 'shift' in config:
         stim_index += config['shift']
-    stim_indicator = np.ones(firing_mat.shape[-1]) * -1
-    t = np.arange(firing_mat.shape[-1])
+    stim_indicator = np.ones(config['mat'].shape[-1]) * -1
+    t = np.arange(config['mat'].shape[-1])
     for idx in range(len(stim_index)):
         for idx_inner in range(stim_index.shape[1]):
             stim_indicator[stim_index[idx, idx_inner, 0]: stim_index[idx, idx_inner, 1]] = idx
-    fig, ax = plt.subplots(len(firing_mat), 1)
-    for idx in range(len(firing_mat)):
-        piece = trans(firing_mat[idx]) if trans is not None else firing_mat[idx]
+    fig, ax = plt.subplots(len(config['mat']), 1)
+    for idx in range(len(config['mat'])):
+        piece = config['trans'](config['mat'][idx]) if config['trans'] is not None else config['mat'][idx]
         ax[idx].plot(piece)
         for idx_inner in range(len(stim_index)):
             collection = collections.BrokenBarHCollection.span_where(t, ymin=min(np.min(piece), 0), ymax=max(np.max(piece), 1), where=stim_indicator == idx_inner, facecolor=config['color_map'][idx_inner], alpha=0.2)
@@ -151,6 +154,14 @@ def visualize_2d_cluster(clus_num, dim_rdc_res, clus_res, config):
         plt.title(config['title'])
     plt.legend()
     plt.show(block=True)
+    if config['sample_config'] is not None:
+        for item in range(clus_num):
+            index = np.where(clus_res == item)[0]
+            tmp_res = config['sample_config']['mat'][index]
+            tmp_config = deepcopy(config['sample_config'])
+            tmp_config['mat'] = tmp_res
+            tmp_config['single_stim_color'] = config['color_map'][item]
+            visualize_firing_curves(tmp_config)
 
 
 def visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config):
@@ -163,3 +174,4 @@ def visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config):
         ax.set_title(config['title'])
     plt.legend()
     plt.show(block=True)
+
