@@ -35,8 +35,7 @@ if __name__ == '__main__':
 
     cluster_config['dim'] = 3
     visualize_cluster(clus_num, tsne_res_3d, kmeans_res, cluster_config)
-    sys.exit()
     firing_curve_config['stim_kind'] = 'single_stim'
     firing_curve_config['stim_index'] = trial_stim_index
 
-    visualize_firing_curves(f_dff, firing_curve_config)
+    visualize_firing_curves(firing_curve_config)
