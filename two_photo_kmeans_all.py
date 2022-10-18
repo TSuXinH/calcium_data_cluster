@@ -4,7 +4,7 @@ from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 
-from base_data_two_photo import f_dff, f_trial1, trial_stim_index, trial1_stim_index
+from base_data_two_photo import f_dff, trial_stim_index
 from utils import generate_cluster_config, generate_firing_curve_config, \
     visualize_cluster, visualize_firing_curves, z_score, normalize
 
@@ -23,19 +23,27 @@ if __name__ == '__main__':
     firing_curve_config = generate_firing_curve_config()
 
     f_test = z_score(f_dff)
-    component = choose_component(f_test, .9)
+    thr = .9
+    component = choose_component(f_test, thr)
+    print('threshold: {}, component: {}'.format(thr, component))
 
     clus_num = 4
+    cluster_config['dim'] = 3
+    cluster_config['title'] = 'Visualization {}d'.format(cluster_config['dim'])
     pca = PCA(n_components=component)
     pca_res = pca.fit_transform(f_test)
     kmeans = KMeans(n_clusters=clus_num)
     kmeans_res = kmeans.fit_predict(pca_res)
-    tsne_3d = TSNE(n_components=3)
-    tsne_res_3d = tsne_3d.fit_transform(pca_res)
+    # tsne = TSNE(n_components=cluster_config['dim'])
+    # dim_rdc_res = tsne.fit_transform(pca_res)
+    pca_dim_rdc = PCA(n_components=cluster_config['dim'])
+    res_rdc_dim = pca_dim_rdc.fit_transform(pca_res)
 
-    cluster_config['dim'] = 3
-    visualize_cluster(clus_num, tsne_res_3d, kmeans_res, cluster_config)
-    firing_curve_config['stim_kind'] = 'single_stim'
+    firing_curve_config['mat'] = f_dff
+    firing_curve_config['stim_kind'] = 'single'
     firing_curve_config['stim_index'] = trial_stim_index
-
-    visualize_firing_curves(firing_curve_config)
+    firing_curve_config['show_part'] = 0
+    firing_curve_config['axis'] = False
+    cluster_config['sample_config'] = firing_curve_config
+    print(cluster_config)
+    visualize_cluster(clus_num, res_rdc_dim, kmeans_res, cluster_config)
