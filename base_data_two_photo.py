@@ -4,12 +4,11 @@ import numpy as np
 from copy import deepcopy
 from scipy import io as scio
 from os.path import join as join
-
-from utils import visualize_firing_curves, generate_firing_curve_config
+import matplotlib.pyplot as plt
 
 
 def get_data(path):
-    """ get the data directly. """
+    """ imports the data directly. """
     data = h5py.File(path, 'r')
     key = list(data.keys())[0]
     return np.array(data.get(key)).T
@@ -76,7 +75,14 @@ tmp_stim_index1 = final_index[: 40]
 stim_index = []
 for idx in range(4):
     stim_index.append(tmp_stim_index1[idx:: 4].reshape(1, 10, -1))
-trial1_stim_index = np.concatenate(stim_index, axis=0)
+trial1_stim_index = np.concatenate(stim_index, axis=0) - final_index[0, 0]
+
+f_trial2 = f_dff[:, final_index[40, 0]: final_index[79, 1]]
+tmp_stim_index2 = final_index[40: 80]
+stim_index = []
+for idx in range(4):
+    stim_index.append(tmp_stim_index2[idx:: 4].reshape(1, 10, -1))
+trial2_stim_index = np.concatenate(stim_index, axis=0) - final_index[40, 0]
 
 # config = generate_firing_curve_config()
 # config['stim_kind'] = 'single_stim'

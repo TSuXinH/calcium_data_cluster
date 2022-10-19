@@ -11,13 +11,21 @@ color_map = {
     1: 'green',
     2: 'blue',
     3: 'purple',
-    4: 'navy',
+    4: 'olive',
     5: 'black',
     6: 'maroon',
     7: 'orange',
     8: 'purple',
     9: 'navy',
     10: 'red',
+    11: 'C1',
+    12: 'C2',
+    13: 'C3',
+    14: 'C4',
+    15: 'C5',
+    16: 'C6',
+    17: 'C7',
+    18: 'C8',
 }
 
 
@@ -34,9 +42,10 @@ def generate_firing_curve_config():
         'color_map': color_map,
         'trans': None,
         'show_part': 0,
-        'last_thr': 10,
         'alpha': .4,
-        'line_width': 1
+        'line_width': 1,
+        'show_id': False,
+        'raw_index': 0,
     }
     return firing_curve_config
 
@@ -57,7 +66,7 @@ def visualize_firing_curves(config):
     Visualize neuron firing curves:
     `config` is a dictionary which contains:
         `mat`, `axis`, `stim_kind`, `title`, `color`, `stim_index`, `multi_stim_index`,
-        `single_stim_color`, `color_map`, 'trans', `show_part`, `last_thr`
+        `single_stim_color`, `color_map`, 'trans', `show_part`
     `stim_index` should contain a matrix whose shape is [N, 2].
     `multi_stim_index` should contain a matrix whose shape is [k, N, 2], where k is the stimulus kind.
     """
@@ -65,12 +74,29 @@ def visualize_firing_curves(config):
         _index = np.arange(_len)
         loop = int(_len / _piece_len) + 1
         last = _len % _piece_len
-        loop_num = loop if last > config['last_thr'] else loop-1
-        for idx in range(loop_num):
-            if idx == loop-1:
-                yield _index[_piece_len * idx:]
-            else:
-                yield _index[_piece_len * idx: _piece_len * (idx + 1)]
+        if loop > last // 5 and last != 0:
+            added = loop // last
+            extra = loop % last
+            prev_idx = 0
+            for idx in range(loop-1):
+                if idx == loop-2:
+                    yield _index[prev_idx:]
+                else:
+                    if idx < last:
+                        yield _index[prev_idx: prev_idx+_piece_len+added]
+                        prev_idx += (_piece_len + added)
+                    elif idx == last:
+                        yield _index[prev_idx: prev_idx+_piece_len+extra]
+                        prev_idx += (_piece_len + extra)
+                    else:
+                        yield _index[prev_idx: prev_idx+_piece_len]
+                        prev_idx += _piece_len
+        else:
+            for idx in range(loop):
+                if idx == loop-1:
+                    yield _index[idx*_piece_len:]
+                else:
+                    yield _index[idx*_piece_len: (idx+1)*_piece_len]
 
     def plot(_config):
         if _config['stim_kind'] == 'without':
@@ -82,27 +108,32 @@ def visualize_firing_curves(config):
         else:
             raise NotImplementedError('There is no such stimulus. ')
 
-    assert config['show_part'] == 0 or config['show_part'] >= 50, 'No need of `show_part`. '
     if len(config['mat'].shape) == 1:
         config['mat'] = config['mat'].reshape(1, -1)
-    if config['show_part'] == 0 or len(config['mat']) < config['show_part']:
+    if config['show_part'] == 0 or len(config['mat']) <= config['show_part']:
         plot(config)
     else:
         tmp_config = deepcopy(config)
         for index in split(len(config['mat']), config['show_part']):
             tmp_config['mat'] = config['mat'][index]
+            tmp_config['raw_index'] = config['raw_index'][index]
             plot(tmp_config)
 
 
 def visualize_firing_curves_wo_stim(config):
     """ Visualize the firing curve of all the neurons without stimuli. """
     length = len(config['mat'])
+    fig, ax = plt.subplots(length, 1)
     for idx in range(length):
-        plt.subplot(length, 1, idx + 1)
         piece = config['trans'](config['mat'][idx]) if config['trans'] is not None else config['mat'][idx]
-        plt.plot(piece, color=config['color'], linewidth=config['line_width'])
-        plt.axis(config['axis'])
-    plt.title(config['title'], fontsize='large')
+        ax[idx].plot(piece, color=config['color'], linewidth=config['line_width'])
+        ax[idx].axis(config['axis'])
+        if config['show_id']:
+            ax[idx].text(config['mat'].shape[1]+10, 0, config['raw_index'][idx], fontsize=8)
+            # print(config['raw_index'][idx])
+            # disp_x, disp_y = ax[idx].transAxes.transform((0, 0))
+            # ax[idx].annotate(config['raw_index'][idx], (disp_x, disp_y), xycoords='figure pixels', textcoords='offset pixels')
+    plt.suptitle(config['title'], fontsize='xx-large', y=.9)
     plt.show(block=True)
 
 
@@ -122,7 +153,9 @@ def visualize_firing_curves_single_stim(config):
         collection = collections.BrokenBarHCollection.span_where(t, ymin=min(np.min(piece), 0), ymax=max(np.max(piece), 1), where=stim_fake > 0, facecolor=config['single_stim_color'], alpha=config['alpha'])
         ax[idx].add_collection(collection)
         ax[idx].axis(config['axis'])
-    plt.suptitle(config['title'], fontsize='large')
+        if config['show_id']:
+            ax[idx].text(config['mat'].shape[1]+10, 0, config['raw_index'][idx], fontsize=8)
+    plt.suptitle(config['title'], fontsize='xx-large', y=.9)
     plt.show(block=True)
 
 
@@ -140,11 +173,13 @@ def visualize_firing_curves_multi_stim(config):
     for idx in range(len(config['mat'])):
         piece = config['trans'](config['mat'][idx]) if config['trans'] is not None else config['mat'][idx]
         ax[idx].plot(piece, color=config['color'], linewidth=config['line_width'])
+        if config['show_id']:
+            ax[idx].text(config['mat'].shape[1]+10, 0, config['raw_index'][idx], fontsize=8)
         for idx_inner in range(len(stim_index)):
             collection = collections.BrokenBarHCollection.span_where(t, ymin=min(np.min(piece), 0), ymax=max(np.max(piece), 1), where=stim_indicator == idx_inner, facecolor=config['color_map'][color_len - idx_inner - 1], alpha=config['alpha'])
             ax[idx].add_collection(collection)
         ax[idx].axis(config['axis'])
-    plt.suptitle(config['title'])
+    plt.suptitle(config['title'], fontsize='xx-large', y=.9)
     plt.show(block=True)
 
 
@@ -173,7 +208,7 @@ def visualize_2d_cluster(clus_num, dim_rdc_res, clus_res, config):
         tmp_result = dim_rdc_res[index]
         plt.scatter(tmp_result[:, 0], tmp_result[:, 1], c=config['color_map'][idx], label='cluster {}'.format(idx), s=config['s'])
         plt.legend()
-    plt.suptitle(config['title'])
+    plt.title(config['title'], fontsize='large')
     plt.show(block=True)
     if config['sample_config'] is not None:
         tmp_config = deepcopy(config['sample_config'])
@@ -181,7 +216,8 @@ def visualize_2d_cluster(clus_num, dim_rdc_res, clus_res, config):
             index = np.where(clus_res == item)[0]
             tmp_config['mat'] = deepcopy(config['sample_config']['mat'][index])
             tmp_config['color'] = config['color_map'][idx]
-            tmp_config['title'] = 'cluster: {}'.format(idx)
+            tmp_config['title'] = 'cluster: {}, number: {}'.format(idx, len(index))
+            tmp_config['raw_index'] = config['sample_config']['raw_index'][index]
             visualize_firing_curves(tmp_config)
 
 
@@ -197,7 +233,7 @@ def visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config):
         tmp_result = dim_rdc_res[index]
         ax.scatter(tmp_result[:, 0], tmp_result[:, 1], tmp_result[:, 2], c=config['color_map'][idx], label='cluster {}'.format(idx), s=config['s'])
         ax.legend()
-    plt.suptitle(config['title'])
+    ax.set_title(config['title'], fontsize='large')
     plt.show(block=True)
     if config['sample_config'] is not None:
         tmp_config = deepcopy(config['sample_config'])
@@ -205,5 +241,19 @@ def visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config):
             index = np.where(clus_res == item)[0]
             tmp_config['mat'] = deepcopy(config['sample_config']['mat'][index])
             tmp_config['color'] = config['color_map'][idx]
-            tmp_config['title'] = 'cluster: {}'.format(idx)
+            tmp_config['title'] = 'cluster: {}, number: {}'.format(idx, len(index))
+            tmp_config['raw_index'] = config['sample_config']['raw_index'][index]
             visualize_firing_curves(tmp_config)
+
+
+def plot_ss_ch(ss_list, ch_list, start_index):
+    ax = plt.subplot(111)
+    l1 = ax.plot(ss_list, label='ss score', c='r')
+    ax_alter = ax.twinx()
+    l2 = ax_alter.plot(ch_list, label='ch_score', c='g')
+    ax.set_xticks(list(range(len(ss_list))), list(range(start_index, start_index+len(ss_list))))
+    lin = l1 + l2
+    labels = [_l.get_label() for _l in lin]
+    ax.legend(lin, labels, loc='upper right')
+    ax.set_title('silhouette and calinski harabasz score')
+    plt.show(block=True)
