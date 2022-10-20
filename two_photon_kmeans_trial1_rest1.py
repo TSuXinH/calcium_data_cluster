@@ -7,12 +7,12 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, calinski_harabasz_score
 
 from base_data_two_photo import f_trial1_rest1, trial1_stim_index
-from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch
+from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch, show_config, set_seed
 from linear import choose_pca_component
 
 
 if __name__ == '__main__':
-    np.random.seed(16)
+    set_seed(16, True)
     cluster_config = generate_cluster_config()
     firing_curve_config = generate_firing_curve_config()
 
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     f_test_sum = np.sum(f_trial1_rest1, axis=-1)
     selected_index = np.where(f_test_sum > sel_thr)[0]
     f_selected = f_trial1_rest1[selected_index]
-    print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
+    print('selected threshold: {}, selected neuron numbers: {}'.format(sel_thr, len(selected_index)))
 
     # n, bins, patches = plt.hist(f_test_sum[f_test_sum < 1000], bins=20, rwidth=.5, align='left')
     # for i in range(len(n)):
@@ -31,9 +31,10 @@ if __name__ == '__main__':
     # sys.exit()
 
     f_test = z_score(f_selected)
+    print('current test shape: {}'.format(f_test.shape))
     thr = .9
     component = choose_pca_component(f_test, thr)
-    print('threshold: {}, component: {}'.format(thr, component))
+    print('summed variance threshold: {}, selected component via pca: {}'.format(thr, component))
     pca = PCA(n_components=component)
     pca_res = pca.fit_transform(f_test)
 
@@ -70,5 +71,5 @@ if __name__ == '__main__':
     firing_curve_config['raw_index'] = np.arange(len(f_test))
     firing_curve_config['show_id'] = True
     cluster_config['sample_config'] = firing_curve_config
-    print(cluster_config)
+    show_config(cluster_config)
     visualize_cluster(clus_num, res_rdc_dim, kmeans_res, cluster_config)
