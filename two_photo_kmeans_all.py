@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # ch_array = ch_array[3:] / loop
     # plot_ss_ch(ss_array, ch_array, 3)
 
-    clus_num = 11
+    clus_num = 20
     cluster_config['dim'] = 3
     cluster_config['title'] = 'Cluster number: {}, Visualization: {}d'.format(clus_num, cluster_config['dim'])
     kmeans = KMeans(n_clusters=clus_num, random_state=6)
@@ -66,3 +66,4 @@ if __name__ == '__main__':
     cluster_config['sample_config'] = firing_curve_config
     print(cluster_config)
     visualize_cluster(clus_num, res_rdc_dim, kmeans_res, cluster_config)
+

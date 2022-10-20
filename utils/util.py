@@ -43,3 +43,15 @@ def show_config(config):
             print(item, ': ', config[item])
     if is_sampled:
         show_config(config['sample_config'])
+
+
+def get_cluster_index(clus_res, clus_num):
+    clus_len_list = []
+    res = []
+    for item in range(clus_num):
+        clus_len_list.append(len(np.where(clus_res == item)[0]))
+    sort_index = np.argsort(clus_len_list)
+    print('sort index', sort_index)
+    for item in sort_index:
+        res.append(np.where(clus_res == item)[0])
+    return res

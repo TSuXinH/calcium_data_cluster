@@ -26,6 +26,7 @@ color_map = {
     16: 'C6',
     17: 'C7',
     18: 'C8',
+    19: 'C9',
 }
 
 
@@ -43,7 +44,7 @@ def generate_firing_curve_config():
         'trans': None,
         'show_part': 0,
         'alpha': .4,
-        'line_width': 1,
+        'line_width': 1.5,
         'show_id': False,
         'raw_index': 0,
     }
@@ -143,6 +144,7 @@ def visualize_firing_curves_single_stim(config):
     t = np.arange(config['mat'].shape[-1])
     stim_fake = np.zeros(shape=(config['mat'].shape[-1],))
     fig, ax = plt.subplots(len(config['mat']), 1)
+    ax = [ax] if isinstance(ax, np.ndarray) is False else ax
     if config['axis'] is False:
         plt.subplots_adjust(hspace=-.1)
     for idx in range(len(stim_index)):
@@ -167,6 +169,7 @@ def visualize_firing_curves_multi_stim(config):
         for idx_inner in range(stim_index.shape[1]):
             stim_indicator[stim_index[idx, idx_inner, 0]: stim_index[idx, idx_inner, 1]] = idx
     fig, ax = plt.subplots(len(config['mat']), 1)
+    ax = [ax] if isinstance(ax, np.ndarray) is False else ax
     if config['axis'] is False:
         plt.subplots_adjust(hspace=-.1)
     color_len = len(config['color_map'])
