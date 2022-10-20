@@ -71,6 +71,7 @@ f_mean_stim = f_long_stim.reshape(-1, 360, 5).mean(-1)
 trial_stim_index = np.concatenate([final_index[:: 40, 0], final_index[39:: 40, 1]]).reshape(2, 5).T
 
 f_trial1 = f_dff[:, final_index[0, 0]: final_index[39, 1]]
+f_trial1_rest1 = f_dff[:, final_index[0, 0]: final_index[40, 0]]
 tmp_stim_index1 = final_index[: 40]
 stim_index = []
 for idx in range(4):
