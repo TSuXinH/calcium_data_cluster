@@ -1,4 +1,5 @@
 import sys
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
@@ -11,6 +12,8 @@ from sklearn.metrics import silhouette_score, calinski_harabasz_score
 from base_data_two_photo import f_trial1_rest1, trial1_stim_index
 from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch, show_config, set_seed, get_cluster_index
 from linear import choose_pca_component
+
+warnings.filterwarnings('ignore')
 
 
 if __name__ == '__main__':
@@ -63,7 +66,7 @@ if __name__ == '__main__':
     # plot_ss_ch(ss_array, ch_array, 2)
     # sys.exit()
 
-    clus_num = 6
+    clus_num = 20
 
     cluster_config['dim'] = 3
     cluster_config['title'] = 'Cluster number: {}, Visualization: {}d'.format(clus_num, cluster_config['dim'])
@@ -74,17 +77,20 @@ if __name__ == '__main__':
     pca_dim_rdc = PCA(n_components=cluster_config['dim'])
     res_rdc_dim = pca_dim_rdc.fit_transform(pca_res)
 
-    firing_curve_config['mat'] = f_test
+    firing_curve_config['mat'] = f_selected
     firing_curve_config['stim_kind'] = 'multi'
     firing_curve_config['multi_stim_index'] = trial1_stim_index
-    firing_curve_config['show_part'] = 0
-    firing_curve_config['axis'] = False
-    firing_curve_config['raw_index'] = np.arange(len(f_test))
+    firing_curve_config['show_part'] = 20
+    firing_curve_config['axis'] = True
+    firing_curve_config['raw_index'] = selected_index
     firing_curve_config['show_id'] = True
-    cluster_config['sample_config'] = None  # firing_curve_config
+    cluster_config['sample_config'] = firing_curve_config
     show_config(cluster_config)
     visualize_cluster(clus_num, res_rdc_dim, kmeans_res, cluster_config)
     # visualize_cluster(2, res_rdc_dim, valid_clus_res, cluster_config)
+    sys.exit()
+
+
     index_all = get_cluster_index(kmeans_res, clus_num)
 
     selected_index_alter = index_all[3]

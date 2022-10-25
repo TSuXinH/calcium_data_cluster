@@ -73,9 +73,9 @@ def visualize_firing_curves(config):
     """
     def split(_len, _piece_len):
         _index = np.arange(_len)
-        loop = int(_len / _piece_len) + 1
         last = _len % _piece_len
-        if loop > last // 5 and last != 0:
+        loop = int(_len / _piece_len) + 1 if last != 0 else int(_len / _piece_len)
+        if loop > last // 5 + 1 and last != 0:
             added = loop // last
             extra = loop % last
             prev_idx = 0
@@ -105,7 +105,7 @@ def visualize_firing_curves(config):
         elif _config['stim_kind'] == 'single':
             visualize_firing_curves_single_stim(_config)
         elif _config['stim_kind'] == 'multi':
-            return visualize_firing_curves_multi_stim(_config)
+            visualize_firing_curves_multi_stim(_config)
         else:
             raise NotImplementedError('There is no such stimulus. ')
 

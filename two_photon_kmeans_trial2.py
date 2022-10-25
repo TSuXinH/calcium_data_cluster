@@ -62,13 +62,13 @@ if __name__ == '__main__':
     pca_dim_rdc = PCA(n_components=cluster_config['dim'])
     res_rdc_dim = pca_dim_rdc.fit_transform(pca_res)
 
-    firing_curve_config['mat'] = f_test
+    firing_curve_config['mat'] = f_selected
     firing_curve_config['stim_kind'] = 'multi'
     firing_curve_config['multi_stim_index'] = trial2_stim_index
     firing_curve_config['show_part'] = 0
     firing_curve_config['axis'] = False
     firing_curve_config['raw_index'] = np.arange(len(f_test))
     firing_curve_config['show_id'] = True
-    cluster_config['sample_config'] = None  # firing_curve_config
+    cluster_config['sample_config'] = firing_curve_config
     print(cluster_config)
     visualize_cluster(clus_num, res_rdc_dim, kmeans_res, cluster_config)

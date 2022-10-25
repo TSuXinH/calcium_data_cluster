@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     cluster_config = generate_cluster_config()
     firing_curve_config = generate_firing_curve_config()
-    clus_num = 2
+    clus_num = 20
     cluster_config['dim'] = 3
     cluster_config['title'] = 'Cluster number: {}, Visualization: {}d'.format(clus_num, cluster_config['dim'])
     kmeans = KMeans(n_clusters=clus_num, random_state=6)
@@ -79,16 +79,17 @@ if __name__ == '__main__':
     pca_dim_rdc = PCA(n_components=cluster_config['dim'])
     res_rdc_dim = pca_dim_rdc.fit_transform(pca_res)
 
-    firing_curve_config['mat'] = f_test
+    firing_curve_config['mat'] = f_selected
     firing_curve_config['stim_kind'] = 'multi'
     firing_curve_config['multi_stim_index'] = trial1_stim_index
-    firing_curve_config['show_part'] = 0
-    firing_curve_config['axis'] = False
-    firing_curve_config['raw_index'] = np.arange(len(f_test))
+    firing_curve_config['show_part'] = 20
+    firing_curve_config['axis'] = True
+    firing_curve_config['raw_index'] = selected_index
     firing_curve_config['show_id'] = True
     cluster_config['sample_config'] = firing_curve_config
-    # visualize_cluster(clus_num, res_rdc_dim, kmeans_res, cluster_config)
-    # visualize_cluster(2, res_rdc_dim, valid_clus_res, cluster_config)
+    visualize_cluster(clus_num, res_rdc_dim, kmeans_res, cluster_config)
+
+    sys.exit()
 
     index_all = get_cluster_index(kmeans_res, clus_num)
     selected_index_alter = index_all[0]
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     f_label = np.array(f_label)
     print(f_train.shape, f_label)
     k = 14
-    knn = KNeighborsTimeSeriesClassifier(n_neighbors=k, metric='dtw')
+    knn = KNeighborsTimeSeriesClassifier(n_neighbors=k, metri1c='dtw')
     print('k value: {}'.format(k))
     knn.fit(f_train, f_label)
     # svm = SVC()
