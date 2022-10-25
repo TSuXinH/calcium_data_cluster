@@ -7,12 +7,12 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, calinski_harabasz_score
 
 from base_data_two_photo import f_dff, trial_stim_index
-from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch
+from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch, set_seed
 from linear import choose_pca_component
 
 
 if __name__ == '__main__':
-    np.random.seed(16)
+    set_seed(16, True)
     cluster_config = generate_cluster_config()
     firing_curve_config = generate_firing_curve_config()
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # ch_array = ch_array[3:] / loop
     # plot_ss_ch(ss_array, ch_array, 3)
 
-    clus_num = 20
+    clus_num = 3
     cluster_config['dim'] = 3
     cluster_config['title'] = 'Cluster number: {}, Visualization: {}d'.format(clus_num, cluster_config['dim'])
     kmeans = KMeans(n_clusters=clus_num, random_state=6)

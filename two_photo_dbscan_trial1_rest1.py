@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from sklearn.cluster import DBSCAN
+from scipy.spatial.distance import euclidean
+from fastdtw import fastdtw
 from sklearn.metrics import silhouette_score, calinski_harabasz_score
 
 from base_data_two_photo import f_trial1_rest1, trial1_stim_index
@@ -24,6 +26,7 @@ if __name__ == '__main__':
     raw_index = [13, 44, 55, 58, 91, 93, 125, 129, 157, 160, 178, 188, 212, 255, 272, 305, 306, 326, 334, 342, 345, 367, 390, 425, 431, 457, 467, 474, 476, 478, 487, 777]
     raw_index = np.array(raw_index)
     valid_index = [13, 37, 46, 49, 75, 77, 107, 111, 137, 139, 153, 160, 182, 218, 235, 263, 264, 277, 283, 289, 292, 311, 330, 359, 364, 382, 391, 397, 398, 400, 409, 602]
+    valid_index = np.array(valid_index)
     # for item in raw_index:
     #     valid_index.append(np.where(selected_index == item)[0].item())
     # print(valid_index)
@@ -73,9 +76,11 @@ if __name__ == '__main__':
     # sys.exit()
 
     cluster_config['dim'] = 3
+    # z score, eps 30; normalize, eps
     dbscan = DBSCAN(eps=32, min_samples=5)
     dbscan_res = dbscan.fit_predict(pca_res)
     print(dbscan_res)
+    reserved_index = np.where(dbscan_res >= 0)[0]
     f_reserved = f_test[dbscan_res >= 0]
     dbscan_res = dbscan_res[dbscan_res >= 0]
     print('rest length: {}'.format(len(dbscan_res)))
@@ -91,8 +96,24 @@ if __name__ == '__main__':
     firing_curve_config['multi_stim_index'] = trial1_stim_index
     firing_curve_config['show_part'] = 0
     firing_curve_config['axis'] = False
-    firing_curve_config['raw_index'] = np.arange(len(f_reserved))
+    res_index = np.arange(len(f_trial1_rest1))[selected_index]
+    res_index = res_index[reserved_index]
+    firing_curve_config['raw_index'] = res_index
     firing_curve_config['show_id'] = True
     cluster_config['sample_config'] = firing_curve_config
     show_config(cluster_config)
     visualize_cluster(clus_num, res_rdc_dim, dbscan_res, cluster_config)
+
+    index_all = get_cluster_index(dbscan_res, clus_num)
+    index_sum = 0
+    for item in index_all:
+        index_sum += len(item)
+    print(index_sum, len(res_index))
+
+    count = 0
+    for i in res_index:
+        if i in raw_index:
+            count += 1
+    print(count)
+
+

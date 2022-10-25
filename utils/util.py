@@ -38,7 +38,7 @@ def show_config(config):
         if item == 'mat':
             print('mat :  ', config[item].shape)
         elif item == 'sample_config':
-            is_sampled = True
+            is_sampled = True if config['sample_config'] is not None else False
         else:
             print(item, ': ', config[item])
     if is_sampled:
