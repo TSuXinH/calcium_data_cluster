@@ -4,10 +4,11 @@ from torch.utils.data import DataLoader
 from easydict import EasyDict as edict
 from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
+import numpy as np
 
-from base_data_two_photo import *
-from utils import visualize_3d_cluster, visualize_sampled_spikes
-from autoencoder import CustomDataset, train, ZScore, test, normalize, AETest1, cal_err
+from base_data_two_photo import trial1_stim_index, f_trial1
+from autoencoder import CustomDataset, train, test, AETest1, cal_err
+from utils import z_score, normalize, visualize_firing_curves, visualize_cluster, generate_firing_curve_config, generate_cluster_config, set_seed
 
 
 def show_reconstruction(f_dff, recon, idx, trans):
@@ -19,7 +20,13 @@ def show_reconstruction(f_dff, recon, idx, trans):
     plt.show(block=True)
 
 
-f_train = f_mean_stim
+set_seed(16, True)
+sel_thr = 10
+f_test_sum = np.sum(f_trial1, axis=-1)
+selected_index = np.where(f_test_sum > sel_thr)[0]
+f_selected = f_trial1[selected_index]
+print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
+f_train = normalize(f_selected)
 
 args = edict
 # network structure
@@ -30,13 +37,12 @@ args.drop_ratio = .15
 # network hyperparameters
 args.lr = 1e-4
 args.wd = 1e-5
-args.max_epoch = 200
+args.max_epoch = 1000
 args.batch_size = 256
 # other configurations
 args.device = 'cuda'
 args.tb_path = './tensorboard'
-args.save_path = ''
-z_score = ZScore(f_train)
+args.save_path = './rnn/test1.pth'
 
 model = AETest1(args).to(args.device)
 criterion = nn.MSELoss()
@@ -60,12 +66,24 @@ show_reconstruction(f_train, recon_res, x, trans=normalize)
 f_pro = normalize(f_train)
 print(cal_err(recon_res, f_pro))
 
-clusters = 3
+clusters = 10
 k_means = KMeans(n_clusters=clusters, init='k-means++', max_iter=1000)
 res_kmeans = k_means.fit_predict(rdc_res)
 
 dim_red_tsne = TSNE(n_components=3)
 res_tsne = dim_red_tsne.fit_transform(rdc_res)
 
-visualize_3d_cluster(clusters, res_tsne, res_kmeans, title='autoencoder normal')
-visualize_sampled_spikes(f_train, res_kmeans, clusters, show_all=True)
+
+firing_curve_config = generate_firing_curve_config()
+cluster_config = generate_cluster_config()
+
+firing_curve_config['mat'] = f_selected
+firing_curve_config['stim_kind'] = 'multi'
+firing_curve_config['multi_stim_index'] = trial1_stim_index
+firing_curve_config['show_part'] = 20
+firing_curve_config['axis'] = True
+firing_curve_config['raw_index'] = selected_index
+firing_curve_config['show_id'] = True
+cluster_config['sample_config'] = firing_curve_config
+cluster_config['dim'] = 3
+visualize_cluster(clusters, res_tsne, res_kmeans, cluster_config)

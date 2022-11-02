@@ -55,14 +55,14 @@ class AETest1(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.enc = nn.Sequential(
-            nn.Linear(args.input_dim, args.input_dim // 16, bias=False),
+            nn.Linear(args.input_dim, args.input_dim // 4, bias=False),
             nn.LeakyReLU(.1, True),
-            nn.Linear(args.input_dim // 16, args.input_dim // 256, bias=False),
+            nn.Linear(args.input_dim // 4, args.input_dim // 16, bias=False),
         )
         self.dec = nn.Sequential(
-            nn.Linear(args.input_dim // 256, args.input_dim // 16, bias=False),
+            nn.Linear(args.input_dim // 16, args.input_dim // 4, bias=False),
             nn.LeakyReLU(.1, True),
-            nn.Linear(args.input_dim // 16, args.input_dim, bias=False)
+            nn.Linear(args.input_dim // 4, args.input_dim, bias=False)
         )
 
     def forward(self, x):
@@ -110,15 +110,6 @@ class AverageMeter:
 
     def is_better(self):
         return self.ave < self.last_ave
-
-
-class ZScore:
-    def __init__(self, data):
-        self.miu = np.mean(data)
-        self.sigma = np.std(data)
-
-    def __call__(self, data):
-        return (data - self.miu) / self.sigma
 
 
 def train(model, train_loader, criterion, optimizer, args):

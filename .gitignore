@@ -4,6 +4,7 @@ data_alter/
 tensorboard/
 __pycache__/
 .idea/
+ckpt/
 rnn/
 expired/
 *.pth

@@ -41,7 +41,7 @@ class DTCR(nn.Module):
             nn.ConvTranspose1d(
                 in_channels=args.up_sample_chn*2 if args.bidirectional else args.up_sample_chn,
                 out_channels=1,
-                kernel_size=args.conv_ker+1,
+                kernel_size=args.deconv_ker,
                 stride=args.conv_stride
             ),
         )
