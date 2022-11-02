@@ -3,12 +3,16 @@ import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 from sklearn.cluster import KMeans
+from tslearn.clustering import TimeSeriesKMeans
 
 
 class DeepClusterNet(nn.Module):
     def __init__(self, args):
         super().__init__()
-        self.back_bone = nn.Sequential(
+        self.args = args
+        self.conv1d = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=args.conv_ker, stride=args.stride)
+        self.act = nn.LeakyReLU(.1, True)
+        self.mlp = nn.Sequential(
             nn.Linear(args.input_dim, args.hidden_dim),
             nn.LeakyReLU(.1, True),
             nn.Dropout(.3),
@@ -19,9 +23,19 @@ class DeepClusterNet(nn.Module):
         )
 
     def forward(self, x):
-        lat = self.back_bone(x)
-        out = self.cls(lat)
-        return lat, out
+        if self.args.mode == 'linear':
+            lat = self.mlp(x)
+            out = self.cls(lat)
+            return lat, out
+        elif self.args.mode == 'conv':
+            bs, length = x.shape
+            x = x.reshape(bs, 1, length)
+            x = self.conv1d(x).reshape(bs, -1)
+            lat = self.act(x)
+            out = self.cls(lat)
+            return lat, out
+        else:
+            raise NotImplementedError
 
 
 class Train:
@@ -53,7 +67,7 @@ class Train:
         print('epoch: {}, acc: {:.4f}, loss: {:.4f}'.format(epoch+1, acc_once, loss_once))
         if epoch % self.args.fixed_epoch == 0:
             self.model.eval()
-            clus = KMeans(n_clusters=self.args.clus_num)
+            clus = TimeSeriesKMeans(n_clusters=self.args.clus_num, metric='dtw')
             data = self.train_loader.dataset.return_all().to(self.args.device)
             features, _ = self.model(data)
             features = features.detach().cpu()
@@ -65,16 +79,30 @@ class Train:
     def train(self):
         acc_list = []
         loss_list = []
+        loss_interval_list = []
+        loss_min = np.inf
+        save = False
         for epoch in range(self.args.max_epoch):
             acc, loss = self.train_once(epoch)
             acc_list.append(acc)
             loss_list.append(loss)
-            if self.args.path != '':
+            if epoch % self.args.fixed_epoch == 1 and epoch >= self.args.max_epoch // 2:
+                save = False if loss_min < loss else True
+                loss_min = loss_min if loss_min < loss else loss
+            if self.args.path != '' and (epoch % self.args.fixed_epoch == self.args.fixed_epoch-1) \
+                    and save and (epoch >= self.args.max_epoch // 2):
+                print('current epoch: {}'.format(epoch))
                 state = {
                     'model': self.model.state_dict(),
                     'epoch': epoch
                 }
                 torch.save(state, self.args.path)
+            if epoch == self.args.max_epoch-1:
+                state = {
+                    'model': self.model.state_dict(),
+                    'epoch': epoch
+                }
+                torch.save(state, self.args.final_path)
         return acc_list, loss_list
 
 

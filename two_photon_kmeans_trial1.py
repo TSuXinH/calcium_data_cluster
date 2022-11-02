@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     cluster_config = generate_cluster_config()
     firing_curve_config = generate_firing_curve_config()
-    clus_num = 20
+    clus_num = 10
     cluster_config['dim'] = 3
     cluster_config['title'] = 'Cluster number: {}, Visualization: {}d'.format(clus_num, cluster_config['dim'])
     kmeans = KMeans(n_clusters=clus_num, random_state=6)
@@ -82,8 +82,8 @@ if __name__ == '__main__':
     firing_curve_config['mat'] = f_selected
     firing_curve_config['stim_kind'] = 'multi'
     firing_curve_config['multi_stim_index'] = trial1_stim_index
-    firing_curve_config['show_part'] = 20
-    firing_curve_config['axis'] = True
+    firing_curve_config['show_part'] = 50
+    firing_curve_config['axis'] = False
     firing_curve_config['raw_index'] = selected_index
     firing_curve_config['show_id'] = True
     cluster_config['sample_config'] = firing_curve_config

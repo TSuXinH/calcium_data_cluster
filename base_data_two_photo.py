@@ -85,6 +85,26 @@ for idx in range(4):
     stim_index.append(tmp_stim_index2[idx:: 4].reshape(1, 10, -1))
 trial2_stim_index = np.concatenate(stim_index, axis=0) - final_index[40, 0]
 
+
+def bin_curve(mat, stim_index):
+    res = np.zeros(shape=(len(mat), stim_index.shape[0] * stim_index.shape[1] * 2 - 1))
+    new_index = stim_index.transpose((1, 0, 2)).reshape(-1, 2)
+    for idx in range(len(new_index)):
+        if idx == len(new_index)-1:
+            res[:, 2*idx-1] = np.mean(mat[:, new_index[idx][0]: new_index[idx][1]], axis=-1)
+        else:
+            res[:, 2*idx-1] = np.mean(mat[:, new_index[idx][0]: new_index[idx][1]], axis=-1)
+            res[:, 2*idx] = np.mean(mat[:, new_index[idx][1]: new_index[idx+1][0]], axis=-1)
+    return res
+
+
+# f_trial1_binned = bin_curve(f_trial1, stim_index=trial1_stim_index)
+# fig, ax = plt.subplots(2, 1)
+# x = 478
+# ax[0].plot(f_trial1_binned[x])
+# ax[1].plot(f_trial1[x])
+# plt.show(block=True)
+
 # config = generate_firing_curve_config()
 # config['stim_kind'] = 'single_stim'
 # config['stim_index'] = trial_stim_index
