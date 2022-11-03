@@ -98,9 +98,30 @@ def bin_curve(mat, stim_index):
     return res
 
 
+from utils import normalize, z_score, cal_pearson_mat
+
+sel_thr = 10
+f_test_sum = np.sum(f_trial1, axis=-1)
+selected_index = np.where(f_test_sum > sel_thr)[0]
+f_selected = f_trial1[selected_index]
+print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
+
+pearson_mat = cal_pearson_mat(f_selected)
+
+plt.plot(f_selected[102])
+plt.plot(f_selected[343])
+plt.show(block=True)
+x = np.where(pearson_mat > .8)[0]
+a = []
+for i in range(len(f_selected)):
+    if len(np.where(x == i)[0]) == 1:
+        a.append(i)
+print(a)
+
 # f_trial1_binned = bin_curve(f_trial1, stim_index=trial1_stim_index)
 # fig, ax = plt.subplots(2, 1)
 # x = 478
+
 # ax[0].plot(f_trial1_binned[x])
 # ax[1].plot(f_trial1[x])
 # plt.show(block=True)

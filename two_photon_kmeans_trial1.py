@@ -11,7 +11,7 @@ from sklearn.metrics import silhouette_score, calinski_harabasz_score
 from tslearn.neighbors import KNeighborsTimeSeriesClassifier
 
 from base_data_two_photo import f_trial1, trial1_stim_index
-from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch, get_cluster_index, set_seed
+from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch, get_cluster_index, set_seed, cal_pearson_mat
 from linear import choose_pca_component
 
 warnings.filterwarnings('ignore')
@@ -25,6 +25,10 @@ if __name__ == '__main__':
     f_selected = f_trial1[selected_index]
     print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
 
+    # pear_mat = cal_pearson_mat(f_selected)
+    # print(pear_mat)
+    #
+    # sys.exit
     valid_index = [8, 23, 30, 32, 51, 53, 68, 71, 81, 83, 90, 95, 108, 129, 137, 157, 158, 166, 169, 174, 176, 185, 199, 216, 221, 231, 237, 240, 241, 242, 248, 349]
     valid_clus_res = np.zeros(shape=(len(f_selected), ))
     valid_clus_res[valid_index] = 1
@@ -51,6 +55,7 @@ if __name__ == '__main__':
     print('threshold: {}, component: {}'.format(thr, component))
     pca = PCA(n_components=component)
     pca_res = pca.fit_transform(f_test)
+    pca_res = f_test
 
     # loop = 20
     # ss_array = np.zeros(shape=(20, ))
@@ -69,11 +74,12 @@ if __name__ == '__main__':
 
     cluster_config = generate_cluster_config()
     firing_curve_config = generate_firing_curve_config()
-    clus_num = 10
+    clus_num = 50
     cluster_config['dim'] = 3
     cluster_config['title'] = 'Cluster number: {}, Visualization: {}d'.format(clus_num, cluster_config['dim'])
     kmeans = KMeans(n_clusters=clus_num, random_state=6)
     kmeans_res = kmeans.fit_predict(pca_res)
+
     # tsne = TSNE(n_components=cluster_config['dim'])
     # dim_rdc_res = tsne.fit_transform(pca_res)
     pca_dim_rdc = PCA(n_components=cluster_config['dim'])
@@ -86,6 +92,7 @@ if __name__ == '__main__':
     firing_curve_config['axis'] = False
     firing_curve_config['raw_index'] = selected_index
     firing_curve_config['show_id'] = True
+    cluster_config['single_color'] = True
     cluster_config['sample_config'] = firing_curve_config
     visualize_cluster(clus_num, res_rdc_dim, kmeans_res, cluster_config)
 

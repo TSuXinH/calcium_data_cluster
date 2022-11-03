@@ -15,7 +15,7 @@ class DeepClusterNet(nn.Module):
         self.mlp = nn.Sequential(
             nn.Linear(args.input_dim, args.hidden_dim),
             nn.LeakyReLU(.1, True),
-            nn.Dropout(.3),
+            nn.Dropout(.2),
             nn.Linear(args.hidden_dim, args.latent_dim),
         )
         self.cls = nn.Sequential(

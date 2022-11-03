@@ -11,9 +11,9 @@ import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
 
-from utils import normalize, set_seed, generate_firing_curve_config, generate_cluster_config, visualize_cluster, visualize_firing_curves, z_score
+from utils import normalize, set_seed, generate_firing_curve_config, generate_cluster_config, visualize_cluster, visualize_firing_curves, z_score, bin_curve
 from base_data_two_photo import trial1_stim_index, f_trial1
-from DC_train import bin_curve
+
 
 set_seed(16)
 

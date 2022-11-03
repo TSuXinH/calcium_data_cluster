@@ -9,20 +9,8 @@ from tslearn.clustering import TimeSeriesKMeans
 import warnings
 warnings.filterwarnings('ignore')
 
-from utils import normalize, set_seed, z_score
+from utils import normalize, set_seed, z_score, bin_curve
 from base_data_two_photo import trial1_stim_index, f_trial1
-
-
-def bin_curve(mat, stim_index):
-    res = np.zeros(shape=(len(mat), stim_index.shape[0] * stim_index.shape[1] * 2 - 1))
-    new_index = stim_index.transpose((1, 0, 2)).reshape(-1, 2)
-    for idx in range(len(new_index)):
-        if idx == len(new_index)-1:
-            res[:, 2*idx-1] = np.mean(mat[:, new_index[idx][0]: new_index[idx][1]], axis=-1)
-        else:
-            res[:, 2*idx-1] = np.mean(mat[:, new_index[idx][0]: new_index[idx][1]], axis=-1)
-            res[:, 2*idx] = np.mean(mat[:, new_index[idx][1]: new_index[idx+1][0]], axis=-1)
-    return res
 
 
 if __name__ == '__main__':

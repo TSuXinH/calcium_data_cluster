@@ -57,7 +57,8 @@ def generate_cluster_config():
         'title': '',
         'color_map': color_map,
         'sample_config': None,
-        's': 8
+        's': 8,
+        'single_color': False
     }
     return cluster_config
 
@@ -209,8 +210,11 @@ def visualize_2d_cluster(clus_num, dim_rdc_res, clus_res, config):
         index = np.where(clus_res == item)[0]
         print('cluster num: {}'.format(len(index)))
         tmp_result = dim_rdc_res[index]
-        plt.scatter(tmp_result[:, 0], tmp_result[:, 1], c=config['color_map'][idx], label='cluster {}'.format(idx), s=config['s'])
-        plt.legend()
+        if config['single_color']:
+            plt.scatter(tmp_result[:, 0], tmp_result[:, 1], c=config['color_map'][0], s=config['s'])
+        else:
+            plt.scatter(tmp_result[:, 0], tmp_result[:, 1], c=config['color_map'][idx], label='cluster {}'.format(idx), s=config['s'])
+            plt.legend()
     plt.title(config['title'], fontsize='large')
     plt.show(block=True)
     if config['sample_config'] is not None:
@@ -218,7 +222,7 @@ def visualize_2d_cluster(clus_num, dim_rdc_res, clus_res, config):
         for idx, item in enumerate(sort_idx):
             index = np.where(clus_res == item)[0]
             tmp_config['mat'] = deepcopy(config['sample_config']['mat'][index])
-            tmp_config['color'] = config['color_map'][idx]
+            tmp_config['color'] = config['color_map'][idx] if config['single_color'] is False else config['color_map'][0]
             tmp_config['title'] = 'cluster: {}, number: {}'.format(idx, len(index))
             tmp_config['raw_index'] = config['sample_config']['raw_index'][index]
             visualize_firing_curves(tmp_config)
@@ -234,8 +238,11 @@ def visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config):
         index = np.where(clus_res == item)[0]
         print('cluster num: {}'.format(len(index)))
         tmp_result = dim_rdc_res[index]
-        ax.scatter(tmp_result[:, 0], tmp_result[:, 1], tmp_result[:, 2], c=config['color_map'][idx], label='cluster {}'.format(idx), s=config['s'])
-        ax.legend()
+        if config['single_color']:
+            ax.scatter(tmp_result[:, 0], tmp_result[:, 1], tmp_result[:, 2], c=config['color_map'][0], s=config['s'])
+        else:
+            ax.scatter(tmp_result[:, 0], tmp_result[:, 1], tmp_result[:, 2], c=config['color_map'][idx], label='cluster {}'.format(idx), s=config['s'])
+            ax.legend()
     ax.set_title(config['title'], fontsize='large')
     plt.show(block=True)
     if config['sample_config'] is not None:
@@ -243,7 +250,7 @@ def visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config):
         for idx, item in enumerate(sort_idx):
             index = np.where(clus_res == item)[0]
             tmp_config['mat'] = deepcopy(config['sample_config']['mat'][index])
-            tmp_config['color'] = config['color_map'][idx]
+            tmp_config['color'] = config['color_map'][idx] if config['single_color'] is False else config['color_map'][0]
             tmp_config['title'] = 'cluster: {}, number: {}'.format(idx, len(index))
             tmp_config['raw_index'] = config['sample_config']['raw_index'][index]
             visualize_firing_curves(tmp_config)
