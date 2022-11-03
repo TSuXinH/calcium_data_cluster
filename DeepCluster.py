@@ -66,8 +66,13 @@ class Train:
         loss_once /= len(self.train_loader)
         print('epoch: {}, acc: {:.4f}, loss: {:.4f}'.format(epoch+1, acc_once, loss_once))
         if epoch % self.args.fixed_epoch == 0:
+            if epoch // self.args.fixed_epoch <= 5:
+                clus_num = int(self.args.clus_num - int(epoch // self.args.fixed_epoch * 10))
+            else:
+                clus_num = int(self.args.clus_num - 50)
+            print('current cluster num: {}'.format(clus_num))
             self.model.eval()
-            clus = TimeSeriesKMeans(n_clusters=self.args.clus_num, metric='dtw')
+            clus = KMeans(n_clusters=clus_num)
             data = self.train_loader.dataset.return_all().to(self.args.device)
             features, _ = self.model(data)
             features = features.detach().cpu()

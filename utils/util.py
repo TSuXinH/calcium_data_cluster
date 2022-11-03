@@ -75,3 +75,16 @@ def cal_pearson_mat(mat):
         for j in range(len(mat)):
             res[i][j] = np.corrcoef(mat[i], mat[j])[0][1]
     return res
+
+
+def down_up_sample(mat, rate):
+    raw_len = mat.shape[-1]
+    length = raw_len - raw_len % rate
+    mat = mat[:length].reshape(-1, rate).mean(axis=-1)
+    mat = np.interp(np.arange(raw_len), np.arange(mat.shape[-1]), mat)
+    return mat
+
+
+def flip(mat):
+    """ Mat is default normalized """
+    return 1 - mat

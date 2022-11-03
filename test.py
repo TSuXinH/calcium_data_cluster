@@ -45,3 +45,13 @@ plt.show(block=True)
 z = np.linalg.inv(cov) @ np.array([-1, 1])
 plt.plot(np.cumsum(x))
 plt.show()
+
+
+import torch
+import torch.nn as nn
+crit = nn.CosineSimilarity()
+
+x = torch.FloatTensor([[1, 2, 3], [2, 3, 4]])
+y = x + 1
+loss = crit(x, y)
+print(loss)

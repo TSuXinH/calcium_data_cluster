@@ -14,7 +14,7 @@ from base_data_two_photo import trial1_stim_index, f_trial1
 
 
 if __name__ == '__main__':
-    set_seed(16)
+    # set_seed(16)
 
     sel_thr = 10
     f_test_sum = np.sum(f_trial1, axis=-1)
@@ -23,27 +23,32 @@ if __name__ == '__main__':
     print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
     f_selected_binned = bin_curve(f_selected, trial1_stim_index)
     f_selected_cat = np.concatenate([f_selected, f_selected_binned], axis=-1)
-    print('cat size', f_selected.shape)
+    f_selected_fft = np.fft.fftshift(np.fft.fft(f_selected))
+    f_selected_fft = np.abs(f_selected_fft)
+    f_selected_fft = normalize(f_selected_fft)
+    f_selected_cat1 = np.concatenate([normalize(f_selected), f_selected_fft], axis=-1)
+    f_selected_cat_all = np.concatenate([normalize(f_selected), f_selected_fft, normalize(f_selected_binned)], axis=-1)
 
-    f_train = f_selected
+    f_train = f_selected_fft
 
     args = EasyDict()
-    args.mode = 'conv'
+    args.mode = 'linear'
     args.conv_ker = 11
     args.stride = 9
     args.input_dim = f_train.shape[-1]
     args.hidden_dim = 256
-    args.latent_dim = 80
-    args.clus_num = 15
-    args.fixed_epoch = 100
+    args.latent_dim = 50
+    args.clus_num = 100
+    args.fixed_epoch = 25
     args.bs = 128
     args.lr = 1e-3
-    args.max_epoch = 1000
+    args.max_epoch = 500
     args.device = 'cuda'
     args.trans = z_score
     args.path = './ckpt/DC_test.pth'
     args.final_path = './ckpt/final_test.pth'
     args.test_clus_num = 10
+    args.wd = 5e-4
 
     pre_clus = KMeans(args.clus_num)
     clus_label = pre_clus.fit_predict(args.trans(f_train))
@@ -51,7 +56,7 @@ if __name__ == '__main__':
     train_loader = DataLoader(trainset, shuffle=True, batch_size=args.bs)
 
     model = DeepClusterNet(args)
-    optim = optim.Adam(model.parameters(), lr=args.lr)
+    optim = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.wd)
     crit = nn.CrossEntropyLoss()
     print(model)
 

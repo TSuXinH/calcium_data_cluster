@@ -1,5 +1,6 @@
 from DeepCluster import DeepClusterNet, CustomDataset, Train
 from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
@@ -24,27 +25,31 @@ f_selected = f_trial1[selected_index]
 print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
 f_selected_binned = bin_curve(f_selected, trial1_stim_index)
 f_selected_cat = np.concatenate([f_selected, f_selected_binned], axis=-1)
-print('cat size', f_selected_cat.shape)
+f_selected_fft = np.fft.fftshift(np.fft.fft(f_selected))
+f_selected_fft = np.abs(f_selected_fft)
+f_selected_fft = normalize(f_selected_fft)
+f_selected_cat1 = np.concatenate([normalize(f_selected), f_selected_fft], axis=-1)
+f_selected_cat_all = np.concatenate([normalize(f_selected), f_selected_fft, normalize(f_selected_binned)], axis=-1)
 
-f_train = f_selected
+f_train = f_selected_fft
 
 args = EasyDict()
-args.mode = 'conv'
+args.mode = 'linear'
 args.conv_ker = 11
 args.stride = 9
 args.input_dim = f_train.shape[-1]
 args.hidden_dim = 256
-args.latent_dim = 80
-args.clus_num = 15
-args.fixed_epoch = 100
+args.latent_dim = 50
+args.clus_num = 100
+args.fixed_epoch = 25
 args.bs = 128
 args.lr = 1e-3
-args.max_epoch = 1000
+args.max_epoch = 500
 args.device = 'cuda'
 args.trans = z_score
 args.path = './ckpt/DC_test.pth'
 args.final_path = './ckpt/final_test.pth'
-args.test_clus_num = 6
+args.test_clus_num = 9
 
 f_norm = torch.FloatTensor(args.trans(f_train))
 
@@ -57,12 +62,13 @@ model.eval()
 lat, _ = model(f_norm)
 lat = lat.detach().cpu().numpy()
 
-clus = TimeSeriesKMeans(args.test_clus_num, metric='dtw')
+clus = KMeans(args.test_clus_num)
 clus_res = clus.fit_predict(lat)
 
 if args.latent_dim > 3:
-    pca = PCA(n_components=3)
-    lat = pca.fit_transform(lat)
+    # rdc = PCA(n_components=3)
+    rdc = TSNE(n_components=3)
+    lat = rdc.fit_transform(lat)
 
 firing_curve_config = generate_firing_curve_config()
 cluster_config = generate_cluster_config()

@@ -38,7 +38,7 @@ if __name__ == '__main__':
     args.alpha = .5
     args.device = 'cuda'
     args.with_label = False
-    args.ckpt_path = './rnn/test1.pth'
+    args.ckpt_path = './ckpt/test_rnn.pth'
     args.tensorboard = False
 
     model = DTCR(args)

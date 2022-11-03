@@ -85,38 +85,82 @@ for idx in range(4):
     stim_index.append(tmp_stim_index2[idx:: 4].reshape(1, 10, -1))
 trial2_stim_index = np.concatenate(stim_index, axis=0) - final_index[40, 0]
 
-
-def bin_curve(mat, stim_index):
-    res = np.zeros(shape=(len(mat), stim_index.shape[0] * stim_index.shape[1] * 2 - 1))
-    new_index = stim_index.transpose((1, 0, 2)).reshape(-1, 2)
-    for idx in range(len(new_index)):
-        if idx == len(new_index)-1:
-            res[:, 2*idx-1] = np.mean(mat[:, new_index[idx][0]: new_index[idx][1]], axis=-1)
-        else:
-            res[:, 2*idx-1] = np.mean(mat[:, new_index[idx][0]: new_index[idx][1]], axis=-1)
-            res[:, 2*idx] = np.mean(mat[:, new_index[idx][1]: new_index[idx+1][0]], axis=-1)
-    return res
-
-
-from utils import normalize, z_score, cal_pearson_mat
-
 sel_thr = 10
 f_test_sum = np.sum(f_trial1, axis=-1)
 selected_index = np.where(f_test_sum > sel_thr)[0]
 f_selected = f_trial1[selected_index]
 print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
 
-pearson_mat = cal_pearson_mat(f_selected)
+# test = f_trial1[540]
+# N = len(test)
+# test_fft_c = np.fft.fftshift(np.fft.fft(test, N))
+# test_fft = np.abs(test_fft_c)
+# plt.plot(test, c='g')
+# plt.plot(test_fft, c='r')
+# plt.show(block=True)
 
-plt.plot(f_selected[102])
-plt.plot(f_selected[343])
+
+from utils import normalize, z_score, cal_pearson_mat, bin_curve, down_up_sample
+
+
+f1 = f_selected[68]
+f1_resample = down_up_sample(f1, 2)
+plt.plot(f1, 'g')
+plt.plot(f1_resample, 'r')
 plt.show(block=True)
-x = np.where(pearson_mat > .8)[0]
-a = []
-for i in range(len(f_selected)):
-    if len(np.where(x == i)[0]) == 1:
-        a.append(i)
-print(a)
+
+# plt.plot(f1)
+# plt.plot(f2)
+# plt.show(block=True)
+#
+# pearson_mat = cal_pearson_mat(f_selected)
+# index = np.where(pearson_mat > .8)[0]
+# pair_list = []
+# for idx in range(len(pearson_mat)):
+#     if len(np.where(idx == index)[0]) == 1:
+#         continue
+#     else:
+#         pair_list.append(idx)
+# max_count = 1
+# hash_arr = np.zeros(shape=(len(pearson_mat),))
+# for item in pair_list:
+#     if hash_arr[item] > 0:
+#         continue
+#     else:
+#         if item == 104:
+#             print(1)
+#         tmp_pear = pearson_mat[item]
+#         index = np.where(tmp_pear > .8)[0]
+#         hash_arr[index] = max_count
+#         if max_count == 12:
+#             print(item, index)
+#         max_count += 1
+#
+# x = np.random.randint(1, max_count)
+# lucky_choice = np.random.choice(np.where(x == hash_arr)[0], 2, replace=False)
+# f1 = f_selected[lucky_choice[0]]
+# f2 = f_selected[lucky_choice[1]]
+# print(lucky_choice)
+# plt.plot(f1)
+# plt.plot(f2)
+# plt.show(block=True)
+
+# count = 0
+# for i in range(len(pearson_mat)):
+#     for j in range(i):
+#         if pearson_mat[i][j] > .8:
+#             print(i, j)
+#             count += 1
+
+# plt.plot(f_selected[102])
+# plt.plot(f_selected[343])
+# plt.show(block=True)
+# x = np.where(pearson_mat > .8)[0]
+# a = []
+# for i in range(len(f_selected)):
+#     if len(np.where(x == i)[0]) == 1:
+#         a.append(i)
+# print(a)
 
 # f_trial1_binned = bin_curve(f_trial1, stim_index=trial1_stim_index)
 # fig, ax = plt.subplots(2, 1)
