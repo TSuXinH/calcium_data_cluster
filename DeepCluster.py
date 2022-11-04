@@ -99,13 +99,15 @@ class Train:
                 print('current epoch: {}'.format(epoch))
                 state = {
                     'model': self.model.state_dict(),
-                    'epoch': epoch
+                    'epoch': epoch,
+                    'args': self.args,
                 }
                 torch.save(state, self.args.path)
             if epoch == self.args.max_epoch-1:
                 state = {
                     'model': self.model.state_dict(),
-                    'epoch': epoch
+                    'epoch': epoch,
+                    'args': self.args,
                 }
                 torch.save(state, self.args.final_path)
         return acc_list, loss_list

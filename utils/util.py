@@ -1,4 +1,25 @@
 import numpy as np
+from copy import deepcopy
+
+
+class Aug:
+    def __init__(self, trans, p=0, **kwargs):
+        self.trans = trans
+        self.kwargs = kwargs
+        self.p = p
+
+    def __call__(self, x):
+        for t in self.trans:
+            if np.random.rand() < self.p:
+                continue
+            if t == generate_contrast:
+                if 'stim_index' not in self.kwargs or 'pos_ratio' not in self.kwargs or 'mode' not in self.kwargs:
+                    raise ValueError('Important key missed. ')
+                else:
+                    x = t(x, self.kwargs['stim_index'], self.kwargs['mode'], self.kwargs['pos_ratio'])
+            else:
+                x = t(x)
+        return x
 
 
 def set_seed(seed, do_print=False):
@@ -88,3 +109,55 @@ def down_up_sample(mat, rate):
 def flip(mat):
     """ Mat is default normalized """
     return 1 - mat
+
+
+def generate_contrast(mat, stim_index, mode=None, pos_ratio=1.):
+    """
+    Generates contrast patterns in stimulus state and resting state for machines to better extract the features.
+    mat: shape: [N, T]
+    stim_index: shape: [k, n, 2]
+    """
+    if mode is None:
+        mode = ['add']
+    res = deepcopy(mat)
+    if len(res.shape) == 1:
+        res = res.reshape(1, -1)
+    stim_kind = len(stim_index)
+    transposed_stim_index = stim_index.transpose((1, 0, 2)).reshape(-1, 2)
+    # todo: simplify the for loop.
+    for idx in range(len(transposed_stim_index)):
+        if mode is not None:
+            if 'add' in mode:
+                tmp = idx % stim_kind
+                res[:, transposed_stim_index[idx][0]: transposed_stim_index[idx][1]] += pos_ratio * (tmp + 1) / stim_kind
+                if idx != len(transposed_stim_index)-1:
+                    res[:, transposed_stim_index[idx][1]: transposed_stim_index[idx + 1][0]] += -1 / stim_kind * pos_ratio
+            if 'neg' in mode:
+                if idx != len(transposed_stim_index) - 1:
+                    res[:, transposed_stim_index[idx][1]: transposed_stim_index[idx + 1][0]] *= -1
+            if 'pos' in mode:
+                res[:, transposed_stim_index[idx][0]: transposed_stim_index[idx][1]] *= 1 * pos_ratio
+        else:
+            raise NotImplementedError
+    return res if len(res) > 1 else res.reshape(-1)
+
+
+# todo: finish this algorithm.
+# def k_means(mat, clus_num, metric, max_iter=1000, init_method='kmeans++'):
+#     def init_center():
+#         dist_mat = np.zeros(clus_num, len(mat))
+#         for item in range(clus_num_ensure):
+#             if item == 0:
+#                 c0 = np.random.randint(0, len(mat))
+#                 clus_centers[0] = mat[c0]
+#                 dist_mat[0] = np.sum((mat - mat[c0].reshape(1, -1)) ** 2, axis=-1)
+#             else:
+#                 for idx in range(item):
+#
+#
+#
+#     clus_num_ensure = False
+#     clus_centers = np.zeros(shape=(clus_num, mat.shape[-1]))
+#     if init_method == 'kmeans++':
+#         init_center()
+#         else:

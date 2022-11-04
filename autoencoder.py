@@ -6,6 +6,8 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 from copy import deepcopy
 
+from utils import generate_contrast
+
 
 class AutoEncoder(nn.Module):
     def __init__(self, args):
@@ -99,14 +101,17 @@ class AETest1(nn.Module):
 
 
 class CustomDataset(Dataset):
-    def __init__(self, neu_data, args, trans=None):
+    def __init__(self, neu_data, args):
         super().__init__()
         self.args = args
         self.data = neu_data
-        self.trans = trans
 
     def __getitem__(self, item):
-        piece = self.trans(self.data[item]) if self.trans is not None else self.data[item]
+        piece = self.data[item]
+        if self.args.aug is not None:
+            piece = self.args.aug(piece)
+        if self.args.trans is not None:
+            piece = self.args.trans(piece)
         return torch.FloatTensor(piece)
 
     def __len__(self):

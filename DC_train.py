@@ -9,12 +9,12 @@ from tslearn.clustering import TimeSeriesKMeans
 import warnings
 warnings.filterwarnings('ignore')
 
-from utils import normalize, set_seed, z_score, bin_curve
+from utils import normalize, set_seed, z_score, bin_curve, Aug, generate_contrast
 from base_data_two_photo import trial1_stim_index, f_trial1
 
 
 if __name__ == '__main__':
-    # set_seed(16)
+    set_seed(16)
 
     sel_thr = 10
     f_test_sum = np.sum(f_trial1, axis=-1)
@@ -29,7 +29,13 @@ if __name__ == '__main__':
     f_selected_cat1 = np.concatenate([normalize(f_selected), f_selected_fft], axis=-1)
     f_selected_cat_all = np.concatenate([normalize(f_selected), f_selected_fft, normalize(f_selected_binned)], axis=-1)
 
-    f_train = f_selected_fft
+    dic = {
+        'stim_index': trial1_stim_index,
+        'mode': ['pos', 'neg'],
+        'contrast_ratio': 3,
+    }
+    aug = Aug([generate_contrast], -1, **dic)
+    f_train = aug(f_selected)
 
     args = EasyDict()
     args.mode = 'linear'
@@ -39,12 +45,12 @@ if __name__ == '__main__':
     args.hidden_dim = 256
     args.latent_dim = 50
     args.clus_num = 100
-    args.fixed_epoch = 25
+    args.fixed_epoch = 50
     args.bs = 128
     args.lr = 1e-3
     args.max_epoch = 500
     args.device = 'cuda'
-    args.trans = z_score
+    args.trans = normalize
     args.path = './ckpt/DC_test.pth'
     args.final_path = './ckpt/final_test.pth'
     args.test_clus_num = 10

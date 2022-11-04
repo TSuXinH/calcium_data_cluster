@@ -11,13 +11,13 @@ from sklearn.metrics import silhouette_score, calinski_harabasz_score
 from tslearn.neighbors import KNeighborsTimeSeriesClassifier
 
 from base_data_two_photo import f_trial1, trial1_stim_index
-from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch, get_cluster_index, set_seed, cal_pearson_mat, bin_curve
+from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch, get_cluster_index, set_seed, cal_pearson_mat, bin_curve, generate_contrast
 from linear import choose_pca_component
 
 warnings.filterwarnings('ignore')
 
 if __name__ == '__main__':
-    # set_seed(16, True)
+    set_seed(16, True)
 
     sel_thr = 10
     f_test_sum = np.sum(f_trial1, axis=-1)
@@ -26,6 +26,7 @@ if __name__ == '__main__':
     print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
     f_selected_binned = bin_curve(f_selected, trial1_stim_index)
     f_selected_cat = np.concatenate([f_selected, f_selected_binned], axis=-1)
+
     f_selected_fft = np.fft.fftshift(np.fft.fft(f_selected))
     f_selected_fft = np.abs(f_selected_fft)
     f_selected_fft = normalize(f_selected_fft)
@@ -44,12 +45,15 @@ if __name__ == '__main__':
     # print('pair list', pair_list)
     # print('selected neuron number according to the pearson correlation: {}'.format(len(f_new)))
 
-    f_test = f_selected_cat1
+    f_test = z_score(generate_contrast(f_selected, trial1_stim_index, mode=['pos', 'neg'], pos_ratio=10))
+    f_test = z_score(f_selected)
     thr = .9
     component = choose_pca_component(f_test, thr)
     print('threshold: {}, component: {}'.format(thr, component))
     pca = PCA(n_components=component)
     pca_res = pca.fit_transform(f_test)
+
+    # pca_res = f_test
 
     # cluster_config = generate_cluster_config()
     # firing_curve_config = generate_firing_curve_config()
@@ -111,7 +115,7 @@ if __name__ == '__main__':
 
     cluster_config = generate_cluster_config()
     firing_curve_config = generate_firing_curve_config()
-    clus_num = 10
+    clus_num = 30
     cluster_config['dim'] = 3
     cluster_config['title'] = 'Cluster number: {}, Visualization: {}d'.format(clus_num, cluster_config['dim'])
     kmeans = KMeans(n_clusters=clus_num, random_state=6)
@@ -129,7 +133,7 @@ if __name__ == '__main__':
     firing_curve_config['axis'] = False
     firing_curve_config['raw_index'] = selected_index  # [rest_index]
     firing_curve_config['show_id'] = True
-    cluster_config['single_color'] = False
+    cluster_config['single_color'] = True
     cluster_config['sample_config'] = firing_curve_config
     visualize_cluster(clus_num, res_rdc_dim, kmeans_res, cluster_config)
 
@@ -218,7 +222,7 @@ if __name__ == '__main__':
     # for idx in range(len(res_pred)):
     #     if res_pred[idx] == 1:
     #         pred_pos_index.append(test_index[idx])
-    #
+
     # print('accuracy: {}'.format((tp + tn) / len(res_pred)))
     # print('total length: {}'.format(len(res_pred)))
     # print('true positive: {}'.format(tp))

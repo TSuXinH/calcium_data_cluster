@@ -135,7 +135,7 @@ def visualize_firing_curves_wo_stim(config):
             # print(config['raw_index'][idx])
             # disp_x, disp_y = ax[idx].transAxes.transform((0, 0))
             # ax[idx].annotate(config['raw_index'][idx], (disp_x, disp_y), xycoords='figure pixels', textcoords='offset pixels')
-    plt.suptitle(config['title'], fontsize='xx-large', y=.9)
+    plt.suptitle(config['title'], fontsize='large', y=.9)
     plt.show(block=True)
 
 
@@ -158,7 +158,7 @@ def visualize_firing_curves_single_stim(config):
         ax[idx].axis(config['axis'])
         if config['show_id']:
             ax[idx].text(config['mat'].shape[1]+10, 0, config['raw_index'][idx], fontsize=8)
-    plt.suptitle(config['title'], fontsize='xx-large', y=.9)
+    plt.suptitle(config['title'], fontsize='large', y=.9)
     plt.show(block=True)
 
 

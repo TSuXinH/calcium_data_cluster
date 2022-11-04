@@ -5,6 +5,7 @@ from copy import deepcopy
 from scipy import io as scio
 from os.path import join as join
 import matplotlib.pyplot as plt
+from utils import set_seed, normalize, z_score, visualize_firing_curves, generate_firing_curve_config, generate_contrast
 
 
 def get_data(path):
@@ -85,11 +86,19 @@ for idx in range(4):
     stim_index.append(tmp_stim_index2[idx:: 4].reshape(1, 10, -1))
 trial2_stim_index = np.concatenate(stim_index, axis=0) - final_index[40, 0]
 
-sel_thr = 10
-f_test_sum = np.sum(f_trial1, axis=-1)
-selected_index = np.where(f_test_sum > sel_thr)[0]
-f_selected = f_trial1[selected_index]
-print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
+# sel_thr = 10
+# f_test_sum = np.sum(f_trial1, axis=-1)
+# selected_index = np.where(f_test_sum > sel_thr)[0]
+# f_selected = f_trial1[selected_index]
+# print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
+
+# tmp_selected = f_trial1[255: 257]
+# tmp_cont = generate_contrast(tmp_selected, trial1_stim_index, mode=['negative_rest', 'positive_stim'])
+#
+# plt.plot(tmp_selected[0], c='g')
+# plt.plot(tmp_cont[0], c='r')
+# plt.show(block=True)
+
 
 # test = f_trial1[540]
 # N = len(test)
@@ -100,14 +109,14 @@ print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(se
 # plt.show(block=True)
 
 
-from utils import normalize, z_score, cal_pearson_mat, bin_curve, down_up_sample
-
-
-f1 = f_selected[68]
-f1_resample = down_up_sample(f1, 2)
-plt.plot(f1, 'g')
-plt.plot(f1_resample, 'r')
-plt.show(block=True)
+# from utils import normalize, z_score, cal_pearson_mat, bin_curve, down_up_sample
+#
+#
+# f1 = f_selected[68]
+# f1_resample = down_up_sample(f1, 2)
+# plt.plot(f1, 'g')
+# plt.plot(f1_resample, 'r')
+# plt.show(block=True)
 
 # plt.plot(f1)
 # plt.plot(f2)

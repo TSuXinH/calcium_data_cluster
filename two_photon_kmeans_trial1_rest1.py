@@ -27,13 +27,13 @@ if __name__ == '__main__':
     f_selected = f_trial1_rest1[selected_index]
     print('selected threshold: {}, selected neuron numbers: {}'.format(sel_thr, len(selected_index)))
 
-    raw_index = [13, 44, 55, 58, 91, 93, 125, 129, 157, 160, 178, 188, 212, 255, 272, 305, 306, 326, 334, 342, 345, 367, 390, 425, 431, 457, 467, 474, 476, 478, 487, 777]
-    raw_index = np.array(raw_index)
-    valid_index = [13, 37, 46, 49, 75, 77, 107, 111, 137, 139, 153, 160, 182, 218, 235, 263, 264, 277, 283, 289, 292, 311, 330, 359, 364, 382, 391, 397, 398, 400, 409, 602]
-    valid_index = np.array(valid_index)
+    # raw_index = [13, 44, 55, 58, 91, 93, 125, 129, 157, 160, 178, 188, 212, 255, 272, 305, 306, 326, 334, 342, 345, 367, 390, 425, 431, 457, 467, 474, 476, 478, 487, 777]
+    # raw_index = np.array(raw_index)
+    # valid_index = [13, 37, 46, 49, 75, 77, 107, 111, 137, 139, 153, 160, 182, 218, 235, 263, 264, 277, 283, 289, 292, 311, 330, 359, 364, 382, 391, 397, 398, 400, 409, 602]
+    # valid_index = np.array(valid_index)
+    # valid_clus_res = np.zeros(shape=(len(f_selected), ))
+    # valid_clus_res[valid_index] = 1
 
-    valid_clus_res = np.zeros(shape=(len(f_selected), ))
-    valid_clus_res[valid_index] = 1
     # n, bins, patches = plt.hist(f_test_sum[f_test_sum < 1000], bins=20, rwidth=.5, align='left')
     # for i in range(len(n)):
     #     plt.text(bins[i], n[i] * 1.02, int(n[i]), fontsize=12, horizontalalignment="center")
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     # plt.show(block=True)
     # sys.exit()
 
-    f_test = normalize(f_selected)
+    f_test = z_score(f_selected)
     print('current test shape: {}'.format(f_test.shape))
     thr = .9
     component = choose_pca_component(f_test, thr)
@@ -80,19 +80,18 @@ if __name__ == '__main__':
     firing_curve_config['mat'] = f_selected
     firing_curve_config['stim_kind'] = 'multi'
     firing_curve_config['multi_stim_index'] = trial1_stim_index
-    firing_curve_config['show_part'] = 20
-    firing_curve_config['axis'] = True
+    firing_curve_config['show_part'] = 0
+    firing_curve_config['axis'] = False
     firing_curve_config['raw_index'] = selected_index
     firing_curve_config['show_id'] = True
+    firing_curve_config['single_color'] = True
     cluster_config['sample_config'] = firing_curve_config
     show_config(cluster_config)
     visualize_cluster(clus_num, res_rdc_dim, kmeans_res, cluster_config)
     # visualize_cluster(2, res_rdc_dim, valid_clus_res, cluster_config)
     sys.exit()
 
-
     index_all = get_cluster_index(kmeans_res, clus_num)
-
     selected_index_alter = index_all[3]
     # acc = 0
     # for item in selected_index_alter:
