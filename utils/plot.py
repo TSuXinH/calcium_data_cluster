@@ -1,8 +1,9 @@
-import numpy as np
-from copy import deepcopy
-from matplotlib import gridspec
+import seaborn
 import matplotlib.pyplot as plt
 import matplotlib.collections as collections
+
+import numpy as np
+from copy import deepcopy
 
 
 # this dictionary is useful for visualization
