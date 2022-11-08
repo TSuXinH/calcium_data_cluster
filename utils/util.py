@@ -1,6 +1,9 @@
 import numpy as np
 from copy import deepcopy
 
+from scipy.cluster import hierarchy
+from scipy.spatial.distance import pdist
+
 
 class Aug:
     def __init__(self, trans, p=0, **kwargs):
