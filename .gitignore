@@ -8,3 +8,4 @@ ckpt/
 rnn/
 expired/
 *.pth
+runs/
