@@ -86,6 +86,38 @@ for idx in range(4):
     stim_index.append(tmp_stim_index2[idx:: 4].reshape(1, 10, -1))
 trial2_stim_index = np.concatenate(stim_index, axis=0) - final_index[40, 0]
 
+f_trial3 = f_dff[:, final_index[80, 0]: final_index[119, 1]]
+tmp_stim_index3 = final_index[80: 120]
+stim_index = []
+for idx in range(4):
+    stim_index.append(tmp_stim_index3[idx:: 4].reshape(1, 10, -1))
+trial3_stim_index = np.concatenate(stim_index, axis=0) - final_index[80, 0]
+
+f_trial4 = f_dff[:, final_index[120, 0]: final_index[159, 1]]
+tmp_stim_index4 = final_index[120: 160]
+stim_index = []
+for idx in range(4):
+    stim_index.append(tmp_stim_index4[idx:: 4].reshape(1, 10, -1))
+trial4_stim_index = np.concatenate(stim_index, axis=0) - final_index[120, 0]
+
+f_trial5 = f_dff[:, final_index[160, 0]: final_index[199, 1]]
+tmp_stim_index5 = final_index[160: 200]
+stim_index = []
+for idx in range(4):
+    stim_index.append(tmp_stim_index5[idx:: 4].reshape(1, 10, -1))
+trial5_stim_index = np.concatenate(stim_index, axis=0) - final_index[160, 0]
+
+stim_index1 = trial1_stim_index.transpose((1, 0, 2)).reshape(-1, 2)
+stim_index2 = trial2_stim_index.transpose((1, 0, 2)).reshape(-1, 2)
+stim_index3 = trial3_stim_index.transpose((1, 0, 2)).reshape(-1, 2)
+stim_index4 = trial4_stim_index.transpose((1, 0, 2)).reshape(-1, 2)
+stim_index5 = trial5_stim_index.transpose((1, 0, 2)).reshape(-1, 2)
+
+stim_index_kind = []
+for idx in range(4):
+    stim_index_kind.append(final_index[idx:: 4].reshape(1, 50, -1))
+stim_index_kind = np.concatenate(stim_index_kind, axis=0)
+
 # sel_thr = 10
 # f_test_sum = np.sum(f_trial1, axis=-1)
 # selected_index = np.where(f_test_sum > sel_thr)[0]
@@ -110,8 +142,7 @@ trial2_stim_index = np.concatenate(stim_index, axis=0) - final_index[40, 0]
 
 
 # from utils import normalize, z_score, cal_pearson_mat, bin_curve, down_up_sample
-#
-#
+
 # f1 = f_selected[68]
 # f1_resample = down_up_sample(f1, 2)
 # plt.plot(f1, 'g')

@@ -15,9 +15,9 @@ color_map = {
     4: 'olive',
     5: 'black',
     6: 'maroon',
-    7: 'orange',
+    7: 'navy',
     8: 'purple',
-    9: 'navy',
+    9: 'orange',
     10: 'red',
     11: 'C1',
     12: 'C2',
@@ -32,6 +32,13 @@ color_map = {
 
 
 def generate_firing_curve_config():
+    """
+    mat: the input trace matrix to be shown
+    axis: decide whether to show the axis, if False, the axis will not be shown, neither the coordinate numbers
+    stim_kind: choose between `without`, `single` or 'multi`
+    stim_index: show the stimulus background
+    :return: a parameter dictionary
+    """
     firing_curve_config = {
         'mat': 0,
         'axis': False,
@@ -42,12 +49,12 @@ def generate_firing_curve_config():
         'multi_stim_index': 0,
         'single_stim_color': color_map[10],
         'color_map': color_map,
-        'trans': None,
         'show_part': 0,
         'alpha': .4,
         'line_width': 1.5,
         'show_id': False,
         'raw_index': 0,
+        'font_size': 10,
     }
     return firing_curve_config
 
@@ -59,7 +66,8 @@ def generate_cluster_config():
         'color_map': color_map,
         'sample_config': None,
         's': 8,
-        'single_color': False
+        'single_color': False,
+        'font_size': 10
     }
     return cluster_config
 
@@ -69,7 +77,7 @@ def visualize_firing_curves(config):
     Visualize neuron firing curves:
     `config` is a dictionary which contains:
         `mat`, `axis`, `stim_kind`, `title`, `color`, `stim_index`, `multi_stim_index`,
-        `single_stim_color`, `color_map`, 'trans', `show_part`
+        `single_stim_color`, `color_map`, `show_part`
     `stim_index` should contain a matrix whose shape is [N, 2].
     `multi_stim_index` should contain a matrix whose shape is [k, N, 2], where k is the stimulus kind.
     """
@@ -128,7 +136,7 @@ def visualize_firing_curves_wo_stim(config):
     length = len(config['mat'])
     fig, ax = plt.subplots(length, 1)
     for idx in range(length):
-        piece = config['trans'](config['mat'][idx]) if config['trans'] is not None else config['mat'][idx]
+        piece = config['mat'][idx]
         ax[idx].plot(piece, color=config['color'], linewidth=config['line_width'])
         ax[idx].axis(config['axis'])
         if config['show_id']:
@@ -136,7 +144,7 @@ def visualize_firing_curves_wo_stim(config):
             # print(config['raw_index'][idx])
             # disp_x, disp_y = ax[idx].transAxes.transform((0, 0))
             # ax[idx].annotate(config['raw_index'][idx], (disp_x, disp_y), xycoords='figure pixels', textcoords='offset pixels')
-    plt.suptitle(config['title'], fontsize='large', y=.9)
+    plt.suptitle(config['title'], fontsize=config['font_size'], y=.9)
     plt.show(block=True)
 
 
@@ -152,14 +160,14 @@ def visualize_firing_curves_single_stim(config):
     for idx in range(len(stim_index)):
         stim_fake[stim_index[idx][0]: stim_index[idx][1]] = 1
     for idx in range(len(config['mat'])):
-        piece = config['trans'](config['mat'][idx]) if config['trans'] is not None else config['mat'][idx]
+        piece = config['mat'][idx]
         ax[idx].plot(piece, color=config['color'], linewidth=config['line_width'])
         collection = collections.BrokenBarHCollection.span_where(t, ymin=min(np.min(piece), 0), ymax=max(np.max(piece), 1), where=stim_fake > 0, facecolor=config['single_stim_color'], alpha=config['alpha'])
         ax[idx].add_collection(collection)
         ax[idx].axis(config['axis'])
         if config['show_id']:
             ax[idx].text(config['mat'].shape[1]+10, 0, config['raw_index'][idx], fontsize=8)
-    plt.suptitle(config['title'], fontsize='large', y=.9)
+    plt.suptitle(config['title'], fontsize=config['font_size'], y=.9)
     plt.show(block=True)
 
 
@@ -176,7 +184,7 @@ def visualize_firing_curves_multi_stim(config):
         plt.subplots_adjust(hspace=-.1)
     color_len = len(config['color_map'])
     for idx in range(len(config['mat'])):
-        piece = config['trans'](config['mat'][idx]) if config['trans'] is not None else config['mat'][idx]
+        piece = config['mat'][idx]
         ax[idx].plot(piece, color=config['color'], linewidth=config['line_width'])
         if config['show_id']:
             ax[idx].text(config['mat'].shape[1]+10, 0, config['raw_index'][idx], fontsize=8)
@@ -184,7 +192,7 @@ def visualize_firing_curves_multi_stim(config):
             collection = collections.BrokenBarHCollection.span_where(t, ymin=min(np.min(piece), 0), ymax=max(np.max(piece), 1), where=stim_indicator == idx_inner, facecolor=config['color_map'][color_len - idx_inner - 1], alpha=config['alpha'])
             ax[idx].add_collection(collection)
         ax[idx].axis(config['axis'])
-    plt.suptitle(config['title'], fontsize='xx-large', y=.9)
+    plt.suptitle(config['title'], fontsize=config['font_size'], y=.9)
     plt.show(block=True)
 
 
@@ -216,7 +224,7 @@ def visualize_2d_cluster(clus_num, dim_rdc_res, clus_res, config):
         else:
             plt.scatter(tmp_result[:, 0], tmp_result[:, 1], c=config['color_map'][idx], label='cluster {}'.format(idx), s=config['s'])
             plt.legend()
-    plt.title(config['title'], fontsize='large')
+    plt.title(config['title'], fontsize=config['font_size'])
     plt.show(block=True)
     if config['sample_config'] is not None:
         tmp_config = deepcopy(config['sample_config'])
@@ -244,7 +252,7 @@ def visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config):
         else:
             ax.scatter(tmp_result[:, 0], tmp_result[:, 1], tmp_result[:, 2], c=config['color_map'][idx], label='cluster {}'.format(idx), s=config['s'])
             ax.legend()
-    ax.set_title(config['title'], fontsize='large')
+    ax.set_title(config['title'], fontsize=config['font_size'])
     plt.show(block=True)
     if config['sample_config'] is not None:
         tmp_config = deepcopy(config['sample_config'])

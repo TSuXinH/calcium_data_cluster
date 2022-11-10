@@ -146,69 +146,74 @@ class AverageMeter:
         return self.ave < self.last_ave
 
 
-def train(model, train_loader, criterion, optimizer, args, crit2=None):
-    writer = SummaryWriter(args.tb_path)
+def train(model, train_loader, crit, optim, args, valid_loader=None):
     model.train()
-    total_step = len(train_loader)
-    loss_ave = AverageMeter('loss')
-    loss_list = []
-    if args.contrast:
+    min_loss = np.inf
+    train_loss_list = []
+    valid_loss_list = []
+    if valid_loader is not None:
         for epoch in range(args.max_epoch):
-            for idx, data in enumerate(train_loader):
-                optimizer.zero_grad()
-                data = data.to(args.device)
-                _, decoded, pred = model(data)
-                loss_rec = criterion(decoded, data)
-                index = np.random.randint(0, len(data))
-                label = torch.zeros(size=(len(data), ))
-                label[index] = 1
-                label = torch.LongTensor(label).to(args.device)
-                loss_pred = crit2(pred, label)
-                loss = loss_rec + loss_pred
-                loss.backward()
-                optimizer.step()
-                loss_ave.update(loss.item())
-                # writer.add_scalar('training loss iter', loss.item(), epoch*total_step+idx)
-                print('epoch: {}, iteration: {}, loss: {:.6f}'.format(epoch, idx, loss.item()))
-            print('\nepoch: {}'.format(epoch))
-            loss_list.append(loss_ave.ave)
-            if args.save_path:
-                if loss_ave.is_better():
-                    print('saving model')
-                    state = {
-                        'model': model.state_dict(),
-                        'epoch': epoch
-                    }
-                    torch.save(state, args.save_path)
-                writer.add_scalar('training loss epoch', loss_ave.ave, epoch)
-                loss_ave.clear_last()
-            loss_ave.clear()
-    else:
-        for epoch in range(args.max_epoch):
+            model.train()
+            train_loss = .0
+            valid_loss = .0
             for idx, data in enumerate(train_loader):
                 data = data.to(args.device)
                 _, decoded = model(data)
-                loss = criterion(decoded, data)
-                optimizer.zero_grad()
+                loss = crit(decoded, data)
+                optim.zero_grad()
                 loss.backward()
-                optimizer.step()
-                loss_ave.update(loss.item())
-                # writer.add_scalar('training loss iter', loss.item(), epoch*total_step+idx)
+                optim.step()
+                train_loss += loss.item()
                 print('epoch: {}, iteration: {}, loss: {:.6f}'.format(epoch, idx, loss.item()))
-            print('\nepoch: {}'.format(epoch))
-            loss_list.append(loss_ave.ave)
+            train_loss /= len(train_loader)
+            train_loss_list.append(train_loss)
+            model.eval()
+            for idx, data in enumerate(valid_loader):
+                data = data.to(args.device)
+                _, decoded = model(data)
+                loss = crit(decoded, data)
+                valid_loss += loss.item()
+            valid_loss /= len(valid_loader)
+            valid_loss_list.append(valid_loss)
+            print('train loss: {:.6f}, valid loss: {:.6f}'.format(train_loss, valid_loss))
             if args.save_path:
-                if loss_ave.is_better():
-                    print('saving model')
+                if min_loss > valid_loss:
+                    min_loss = valid_loss
                     state = {
                         'model': model.state_dict(),
-                        'epoch': epoch
+                        'epoch': epoch,
+                        'args': args
                     }
                     torch.save(state, args.save_path)
-                writer.add_scalar('training loss epoch', loss_ave.ave, epoch)
-                loss_ave.clear_last()
-            loss_ave.clear()
-        return loss_list
+                    print('saving, current epoch: {}'.format(epoch))
+        return train_loss_list, valid_loss_list
+    else:
+        for epoch in range(args.max_epoch):
+            model.train()
+            train_loss = .0
+            for idx, data in enumerate(train_loader):
+                data = data.to(args.device)
+                _, decoded = model(data)
+                loss = crit(decoded, data)
+                optim.zero_grad()
+                loss.backward()
+                optim.step()
+                train_loss += loss.item()
+                print('epoch: {}, iteration: {}, loss: {:.6f}'.format(epoch, idx, loss.item()))
+            train_loss /= len(train_loader)
+            train_loss_list.append(train_loss)
+            print('train loss: {:.6f}'.format(train_loss))
+            if args.save_path:
+                if min_loss > train_loss:
+                    min_loss = train_loss
+                    state = {
+                        'model': model.state_dict(),
+                        'epoch': epoch,
+                        'args': args
+                    }
+                    torch.save(state, args.save_path)
+                    print('saving, current epoch: {}'.format(epoch))
+        return train_loss_list, valid_loss_list
 
 
 def test(model, test_loader, args):
@@ -228,3 +233,4 @@ def test(model, test_loader, args):
 
 def cal_err(recon, raw):
     return np.mean((recon - raw) ** 2)
+
