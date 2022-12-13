@@ -12,8 +12,11 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans, AgglomerativeClustering
 
 from base_data_two_photo import f_dff, trial_stim_index
-from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch, get_cluster_index, set_seed, cal_pearson_mat, bin_curve, generate_contrast
+from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, \
+    visualize_firing_curves, z_score, normalize, plot_ss_ch, get_cluster_index, set_seed, \
+    cal_pearson_mat, bin_curve, generate_contrast, cluster_map
 from linear import choose_pca_component
+
 warnings.filterwarnings('ignore')
 
 
@@ -30,10 +33,11 @@ if __name__ == '__main__':
     trans = z_score
     method_key = 0
 
-    # print('method: {}, pre-process: {}'.format(method_dict[method_key], 'z_score'))
-    # sns.clustermap(f_dff, method=method_dict[method_key], col_cluster=False, cmap='mako', standard_scale=None, z_score=0)
-    # plt.show()
+    print('method: {}, pre-process: {}'.format(method_dict[method_key], 'z_score'))
+    sns.clustermap(f_dff, method=method_dict[method_key], col_cluster=False, cmap='mako', standard_scale=None, z_score=0)
+    plt.show()
 
+    sys.exit()
     f_test = trans(f_dff)
     Y = pdist(f_test)
     Z = hierarchy.ward(Y)
