@@ -101,6 +101,13 @@ def cal_pearson_mat(mat):
     return res
 
 
+def cal_distance_mat(mat):
+    res = np.zeros(shape=(len(mat), len(mat)))
+    for i in range(len(mat)):
+        for j in range(len(mat)):
+            res[i][j] = np.sqrt(np.sum((mat[i] - mat[j]) ** 2))
+    return res
+
 def down_up_sample(mat, rate):
     raw_len = mat.shape[-1]
     length = raw_len - raw_len % rate

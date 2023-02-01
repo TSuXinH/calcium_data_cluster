@@ -60,7 +60,9 @@ def generate_firing_curve_config():
         'font_size': 10,
         'use_heatmap': False,
         'h_clus': False,
-        'method': 'ward'
+        'dist': 'euclidean',
+        'method': None,
+        'norm': None,
     }
     return firing_curve_config
 
@@ -73,7 +75,8 @@ def generate_cluster_config():
         'sample_config': None,
         's': 8,
         'single_color': False,
-        'font_size': 10
+        'font_size': 10,
+        'sort': False,
     }
     return cluster_config
 
@@ -238,7 +241,10 @@ def visualize_2d_cluster(clus_num, dim_rdc_res, clus_res, config):
     clus_num_array = np.zeros(shape=(clus_num,))
     for item in range(clus_num):
         clus_num_array[item] = len(np.where(clus_res == item)[0])
-    sort_idx = np.argsort(clus_num_array)
+    if config['sort']:
+        sort_idx = np.argsort(clus_num_array)
+    else:
+        sort_idx = np.arange(len(clus_num_array))
     for idx, item in enumerate(sort_idx):
         index = np.where(clus_res == item)[0]
         print('cluster num: {}'.format(len(index)))
@@ -256,8 +262,7 @@ def visualize_2d_cluster(clus_num, dim_rdc_res, clus_res, config):
         for idx, item in enumerate(sort_idx):
             index = np.where(clus_res == item)[0]
             tmp_config['mat'] = deepcopy(config['sample_config']['mat'][index])
-            tmp_config['color'] = config['color_map'][idx] if config['single_color'] is False else config['color_map'][
-                0]
+            tmp_config['color'] = config['color_map'][idx] if config['single_color'] is False else config['color_map'][0]
             tmp_config['title'] = 'cluster: {}, number: {}'.format(idx, len(index))
             tmp_config['raw_index'] = config['sample_config']['raw_index'][index]
             visualize_firing_curves(tmp_config)
@@ -267,7 +272,10 @@ def visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config):
     clus_num_array = np.zeros(shape=(clus_num,))
     for item in range(clus_num):
         clus_num_array[item] = len(np.where(clus_res == item)[0])
-    sort_idx = np.argsort(clus_num_array)
+    if config['sort']:
+        sort_idx = np.argsort(clus_num_array)
+    else:
+        sort_idx = np.arange(len(clus_num_array))
     ax = plt.subplot(111, projection='3d')
     for idx, item in enumerate(sort_idx):
         index = np.where(clus_res == item)[0]
@@ -285,9 +293,11 @@ def visualize_3d_cluster(clus_num, dim_rdc_res, clus_res, config):
         tmp_config = deepcopy(config['sample_config'])
         for idx, item in enumerate(sort_idx):
             index = np.where(clus_res == item)[0]
-            tmp_config['mat'] = deepcopy(config['sample_config']['mat'][index])
-            tmp_config['color'] = config['color_map'][idx] if config['single_color'] is False else config['color_map'][
-                0]
+            tmp_mat = deepcopy(config['sample_config']['mat'][index])
+            # index_tmp_mat = np.argsort(np.sum(tmp_mat, axis=-1))
+            # tmp_mat = tmp_mat[index_tmp_mat]
+            tmp_config['mat'] = tmp_mat
+            tmp_config['color'] = config['color_map'][idx] if config['single_color'] is False else config['color_map'][0]
             tmp_config['title'] = 'cluster: {}, number: {}'.format(idx, len(index))
             tmp_config['raw_index'] = config['sample_config']['raw_index'][index]
             visualize_firing_curves(tmp_config)
@@ -311,15 +321,23 @@ def visualize_heatmap_single_stim(config):
     fig, ax = plt.subplots()
     mat = config['mat']
     if config['h_clus']:
-        cluster_map(config['mat'], method=config['method'], vmin=0, vmax=1,
-                    col_cluster=False, cmap='Greys', standard_scale=None, z_score=0)
+        if config['norm'] == 'zscore':
+            cluster_map(config['mat'], method=config['method'], metric=config['dist'], vmin=0, vmax=1,
+                        col_cluster=False, cmap='Greys', standard_scale=None, z_score=0, config=config)
+        elif config['norm'] == 'standard':
+            cluster_map(config['mat'], method=config['method'], metric=config['dist'], vmin=0, vmax=1,
+                        col_cluster=False, cmap='Greys', standard_scale=0, z_score=None, config=config)
+        else:
+            raise NotImplementedError
     else:
         sns.heatmap(mat, annot=False, vmin=0, vmax=1, cmap='Greys', ax=ax)
         stim_index = config['stim_index']
         for ii in range(stim_index.shape[0]):
             ax.axvspan(xmin=stim_index[ii][0], xmax=stim_index[ii][1],
                        facecolor=config['single_stim_color'], alpha=config['alpha'])
-        plt.show(block=True)
+    if config['title'] is not None:
+        plt.title(config['title'])
+    plt.show(block=True)
 
 
 def visualize_heatmap_multi_stim(config):
@@ -327,9 +345,17 @@ def visualize_heatmap_multi_stim(config):
     fig, ax = plt.subplots()
     mat = config['mat']
     if config['h_clus']:
-        cluster_map(config['mat'], method=config['method'], vmin=0, vmax=1,
-                    col_cluster=False, cmap='Greys', standard_scale=None, z_score=0, config=config)
-        plt.show(block=True)
+        if config['norm'] == 'zscore':
+            cluster_map(config['mat'], method=config['method'], metric=config['dist'], vmin=0, vmax=1,
+                        col_cluster=False, cmap='Greys', standard_scale=None, z_score=0, config=config)
+        elif config['norm'] == 'standard':
+            cluster_map(config['mat'], method=config['method'], metric=config['dist'], vmin=0, vmax=1,
+                        col_cluster=False, cmap='Greys', standard_scale=0, z_score=None, config=config)
+        elif config['norm'] is None:
+            cluster_map(config['mat'], method=config['method'], metric=config['dist'], vmin=0, vmax=1,
+                        col_cluster=False, cmap='Greys', standard_scale=None, z_score=None, config=config)
+        else:
+            raise NotImplementedError
     else:
         sns.heatmap(mat, annot=False, vmin=0, vmax=1, cmap='Greys', ax=ax)
         stim_index = config['multi_stim_index']
@@ -338,15 +364,26 @@ def visualize_heatmap_multi_stim(config):
             for jj in range(stim_index.shape[1]):
                 ax.axvspan(xmin=stim_index[ii][jj][0], xmax=stim_index[ii][jj][1],
                            facecolor=config['color_map'][color_len - ii - 1], alpha=config['alpha'])
-        plt.show(block=True)
+    if config['title'] is not None:
+        plt.title(config['title'])
+    plt.show(block=True)
 
 
 def visualize_heatmap_wo_stim(config):
     fig, ax = plt.subplots()
     mat = config['mat']
     if config['h_clus']:
-        sns.clustermap(config['mat'], method=config['method'], vmin=0, vmax=1, ax=ax,
-                       col_cluster=False, cmap='Greys', standard_scale=None, z_score=0)
+        if config['norm'] == 'zscore':
+            sns.clustermap(config['mat'], method=config['method'], metric=config['dist'], vmin=0, vmax=1, ax=ax,
+                           col_cluster=False, cmap='Greys', standard_scale=None, z_score=0)
+        elif config['norm'] == 'standard':
+            sns.clustermap(config['mat'], method=config['method'], metric=config['dist'], vmin=0, vmax=1, ax=ax,
+                           col_cluster=False, cmap='Greys', standard_scale=0, z_score=None)
+        elif config['norm'] is None:
+            sns.clustermap(config['mat'], method=config['method'], metric=config['dist'], vmin=0, vmax=1, ax=ax,
+                           col_cluster=False, cmap='Greys', standard_scale=None, z_score=None)
+        else:
+            raise NotImplementedError
     else:
         sns.heatmap(mat, annot=False, vmin=np.min(mat), vmax=np.max(mat), cmap='Greys', ax=ax)
     plt.show(block=True)

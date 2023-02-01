@@ -12,7 +12,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import silhouette_score, calinski_harabasz_score
 from tslearn.neighbors import KNeighborsTimeSeriesClassifier
 
-from base_data_two_photo import f_trial1, trial1_stim_index
+from base_data_two_photo import f_trial1_rest1, trial1_stim_index
 from utils import generate_cluster_config, generate_firing_curve_config, visualize_cluster, visualize_firing_curves, z_score, normalize, plot_ss_ch, get_cluster_index, set_seed, cal_pearson_mat, bin_curve, generate_contrast
 from linear import choose_pca_component
 
@@ -22,9 +22,9 @@ if __name__ == '__main__':
     set_seed(16, True)
 
     sel_thr = 10
-    f_test_sum = np.sum(f_trial1, axis=-1)
+    f_test_sum = np.sum(f_trial1_rest1, axis=-1)
     selected_index = np.where(f_test_sum > sel_thr)[0]
-    f_selected = f_trial1[selected_index]
+    f_selected = f_trial1_rest1[selected_index]
     print('selected threshold: {}, selected index length: {}'.format(sel_thr, len(selected_index)))
 
     f_test = z_score(f_selected)
@@ -46,7 +46,9 @@ if __name__ == '__main__':
     firing_curve_config['show_id'] = True
     firing_curve_config['use_heatmap'] = True
     firing_curve_config['h_clus'] = True
-    firing_curve_config['method'] = 'average'
+    firing_curve_config['method'] = 'ward'
+    firing_curve_config['dist'] = 'euclidean'
+    firing_curve_config['norm'] = 'zscore'
     visualize_firing_curves(firing_curve_config)
     sys.exit()
 

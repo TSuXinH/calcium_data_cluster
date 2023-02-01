@@ -9,3 +9,5 @@ rnn/
 expired/
 *.pth
 runs/
+test.py
+discarded/
