@@ -152,22 +152,27 @@ def generate_contrast(mat, stim_index, mode=None, pos_ratio=1.):
     return res if len(res) > 1 else res.reshape(-1)
 
 
-# todo: finish this algorithm.
-# def k_means(mat, clus_num, metric, max_iter=1000, init_method='kmeans++'):
-#     def init_center():
-#         dist_mat = np.zeros(clus_num, len(mat))
-#         for item in range(clus_num_ensure):
-#             if item == 0:
-#                 c0 = np.random.randint(0, len(mat))
-#                 clus_centers[0] = mat[c0]
-#                 dist_mat[0] = np.sum((mat - mat[c0].reshape(1, -1)) ** 2, axis=-1)
-#             else:
-#                 for idx in range(item):
-#
-#
-#
-#     clus_num_ensure = False
-#     clus_centers = np.zeros(shape=(clus_num, mat.shape[-1]))
-#     if init_method == 'kmeans++':
-#         init_center()
-#         else:
+def direct_interpolation(mat, stim_index, standard_len):
+    k, t, b = stim_index.shape
+    res = np.zeros(shape=(len(mat), (k * t * 2 - 1) * standard_len))
+    raw_index = np.transpose(stim_index, (1, 0, 2)).reshape(-1, 2)
+    res_index = np.arange(0, k * t * standard_len * 2, standard_len).reshape((t, k, 2)).transpose(1, 0, 2)
+    for idx in range(len(raw_index)):
+        if idx != len(raw_index) - 1:
+            if raw_index[idx][1] - raw_index[idx][0] == standard_len - 1:
+                res[:, 2 * idx * standard_len: (2 * idx + 1) * standard_len - 1] = mat[:, raw_index[idx][0]: raw_index[idx][1]]
+                res[:, (2 * idx + 1) * standard_len - 1] = (mat[:, raw_index[idx][1]] + mat[:, raw_index[idx][1]-1]) / 2
+            else:
+                res[:, 2 * idx * standard_len: (2 * idx + 1) * standard_len] = mat[:, raw_index[idx][0]: raw_index[idx][1]]
+            if raw_index[idx + 1][0] - raw_index[idx][1] == standard_len - 1:
+                res[:, (2 * idx + 1) * standard_len: (2 * idx + 2) * standard_len - 1] = mat[:, raw_index[idx][1]: raw_index[idx + 1][0]]
+                res[:, (2 * idx + 2) * standard_len - 1] = (mat[:, raw_index[idx+1][0]] + mat[:, raw_index[idx+1][0]-1]) / 2
+            else:
+                res[:, (2 * idx + 1) * standard_len: (2*idx+2) * standard_len] = mat[:, raw_index[idx][1]: raw_index[idx+1][0]]
+        else:
+            if raw_index[idx][1] - raw_index[idx][0] == standard_len - 1:
+                res[:, 2 * idx * standard_len: (2 * idx + 1) * standard_len - 1] = mat[:, raw_index[idx][0]: raw_index[idx][1]]
+                res[:, -1] = mat[:, -1]
+            else:
+                res[:, 2*idx*standard_len: (2*idx+1)*standard_len] = mat[:, raw_index[idx][0]: raw_index[idx][1]]
+    return res, res_index

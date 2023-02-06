@@ -808,7 +808,7 @@ class ClusterGrid(Grid):
         kws.setdefault("cbar", self.ax_cbar is not None)
         heatmap(self.data2d, ax=self.ax_heatmap, cbar_ax=self.ax_cbar,
                 cbar_kws=colorbar_kws, mask=self.mask,
-                xticklabels=xtl, yticklabels=ytl, annot=annot, **kws)
+                xticklabels=xtl, yticklabels=False, annot=annot, **kws)
 
         ytl = self.ax_heatmap.get_yticklabels()
         ytl_rot = None if not ytl else ytl[0].get_rotation()
