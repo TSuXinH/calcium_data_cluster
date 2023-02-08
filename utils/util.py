@@ -108,6 +108,7 @@ def cal_distance_mat(mat):
             res[i][j] = np.sqrt(np.sum((mat[i] - mat[j]) ** 2))
     return res
 
+
 def down_up_sample(mat, rate):
     raw_len = mat.shape[-1]
     length = raw_len - raw_len % rate
@@ -176,3 +177,15 @@ def direct_interpolation(mat, stim_index, standard_len):
             else:
                 res[:, 2*idx*standard_len: (2*idx+1)*standard_len] = mat[:, raw_index[idx][0]: raw_index[idx][1]]
     return res, res_index
+
+
+def cal_mean_corr(*interpolations):
+    length = len(interpolations)
+    res_len = length * (length - 1) / 2
+    res = np.zeros(shape=(len(interpolations[0]), res_len))
+    for ii in range(length):
+        for jj in range(ii+1, length):
+            tmp = np.corrcoef(interpolations[ii], interpolations[jj], rowvar=True)
+
+            # todo: finish it
+            pass
