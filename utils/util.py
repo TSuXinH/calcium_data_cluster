@@ -4,6 +4,8 @@ from copy import deepcopy
 from scipy.cluster import hierarchy
 from scipy.spatial.distance import pdist
 
+from suite2p.extraction import dcnv
+
 
 class Aug:
     def __init__(self, trans, p=0, **kwargs):
@@ -189,3 +191,35 @@ def cal_mean_corr(*interpolations):
 
             # todo: finish it
             pass
+
+
+def generate_stim_mat(stim_index):
+    length = np.max(stim_index)
+    res = np.zeros(shape=(4, length))
+    k, c, _ = stim_index.shape
+    for ii in range(k):
+        for jj in range(c):
+            tmp_idx = stim_index[ii][jj]
+            res[ii][tmp_idx[0]: tmp_idx[1]] = 1
+    return res
+
+
+def generate_spike(f_mat, tau=1., fs=10, neu_coef=0, baseline='maximin', sig_baseline=10, win_baseline=1, bs=128):
+    ops = {
+        'tau': tau,
+        'fs': fs,
+        'neucoeff': neu_coef,
+        'baseline': baseline,
+        'sig_baseline': sig_baseline,
+        'win_baseline': win_baseline,
+        'batch_size': bs
+    }
+    Fc = dcnv.preprocess(
+        F=f_mat,
+        baseline=ops['baseline'],
+        sig_baseline=ops['sig_baseline'],
+        win_baseline=ops['win_baseline'],
+        fs=ops['fs'],
+    )
+    res = dcnv.oasis(Fc, batch_size=ops['batch_size'], tau=ops['tau'], fs=ops['fs'])
+    return res
