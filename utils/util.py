@@ -193,17 +193,6 @@ def cal_mean_corr(*interpolations):
             pass
 
 
-def generate_stim_mat(stim_index):
-    length = np.max(stim_index)
-    res = np.zeros(shape=(4, length))
-    k, c, _ = stim_index.shape
-    for ii in range(k):
-        for jj in range(c):
-            tmp_idx = stim_index[ii][jj]
-            res[ii][tmp_idx[0]: tmp_idx[1]] = 1
-    return res
-
-
 def generate_spike(f_mat, tau=1., fs=10, neu_coef=0, baseline='maximin', sig_baseline=10, win_baseline=1, bs=128):
     ops = {
         'tau': tau,
