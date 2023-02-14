@@ -82,16 +82,16 @@ trial1_spike = generate_spike(f_selected, sig_baseline=5, win_baseline=1, bs=64)
 trial1_test = z_score(trial1_spike)
 trial1_test[trial1_test < 0] = 0
 
-# firing_curve_cluster_config = generate_firing_curve_config()
-# firing_curve_cluster_config['mat'] = trial1_test  # [rest_index]
-# firing_curve_cluster_config['stim_kind'] = 'multi'
-# firing_curve_cluster_config['multi_stim_index'] = trial1_stim_index
-# firing_curve_cluster_config['show_part'] = 50
-# firing_curve_cluster_config['axis'] = False
-# firing_curve_cluster_config['raw_index'] = np.arange(len(trial1_test))  # [rest_index]
-# firing_curve_cluster_config['show_id'] = True
-# visualize_firing_curves(firing_curve_cluster_config)
-#
+firing_curve_cluster_config = generate_firing_curve_config()
+firing_curve_cluster_config['mat'] = trial1_test  # [rest_index]
+firing_curve_cluster_config['stim_kind'] = 'multi'
+firing_curve_cluster_config['multi_stim_index'] = trial1_stim_index
+firing_curve_cluster_config['show_part'] = 50
+firing_curve_cluster_config['axis'] = False
+firing_curve_cluster_config['raw_index'] = np.arange(len(trial1_test))  # [rest_index]
+firing_curve_cluster_config['show_id'] = True
+visualize_firing_curves(firing_curve_cluster_config)
+
 # plt.plot(trial1_test[5], label='spike')
 # plt.plot(f_selected[5], label='F')
 # plt.legend()
@@ -189,14 +189,11 @@ from torch import nn, optim
 # co_variate = deepcopy(stim_variable)
 # resting_variable = 1 - stim_variable[0] - stim_variable[1] - stim_variable[2] - stim_variable[3]
 # co_variate = np.concatenate([co_variate, resting_variable.reshape(1, -1)], axis=0)
-#
 # stim = co_variate  # shape: [stim, ]
 # y = trial1_f[7]
 # y_spike = trial1_binary[7]
 # theta = fit_lnp(stim, y_spike)
-#
 # y_pred = predict_spike_counts_lnp(stim, y_spike, theta)
-#
 # plt.plot(y_spike, label='gt')
 # plt.plot(y_pred, label='pred')
 # plt.show(block=True)
@@ -261,7 +258,11 @@ def plot_all(f, spike, pred, title=None):
     plt.show(block=True)
 
 
-def cal_aic(theta, variate, spike, d):
+def cal_aic_theta(theta, variate, spike, d):
+    return 2 * len(theta) - get_positive_likelihood(theta, variate, spike, d)
+
+
+def cal_aic_num(theta, variate, spike, d):
     return 2 * len(variate) - get_positive_likelihood(theta, variate, spike, d)
 
 
@@ -269,11 +270,13 @@ co_variate = deepcopy(stim_variable)
 
 stim = co_variate  # shape: [n, t]
 gamma_ = .1
-d_ = 70
-index = 5
+d_ = 100
+index = 100
 n_, t_ = stim.shape
 y = trial1_f[index]
 y_spike = trial1_binary[index]
+index = np.where(np.sum(trial1_binary, axis=1) == 0)[0]
+trial1_binary[index, 0] = 1
 theta = fit_reshaped_mat(stim, y_spike, n_, gamma_, d_)
 y_pred = predict_reshaped_mat(stim, y_spike, theta, d_)
 
@@ -285,7 +288,7 @@ def cal_single_delta_aic(spike, variate, gamma, d):
     n = len(variate)
     res = np.zeros(shape=(n, ))
     theta_all = fit_reshaped_mat(variate, spike, n, gamma, d)
-    aic_all = cal_aic(theta_all, variate, spike, d)
+    aic_all = cal_aic_theta(theta_all, variate, spike, d)
     for idx in range(n):
         def ablation(index, mat):
             if index == 0:
@@ -297,11 +300,28 @@ def cal_single_delta_aic(spike, variate, gamma, d):
             return excluded_mat
         ablated_v = ablation(idx, variate)
         theta_tmp = fit_reshaped_mat(ablated_v, spike, n-1, gamma, d)
-        aic_tmp = cal_aic(theta_tmp, ablated_v, spike, d)
+        aic_tmp = cal_aic_theta(theta_tmp, ablated_v, spike, d)
         res[idx] = aic_tmp - aic_all
     return res
 
 
-res = cal_single_delta_aic(y_spike, co_variate, gamma_, d_)
-plt.plot(y_spike)
+# for item in range(len(trial1_binary)):
+#     print(item)
+#     y_spike = trial1_binary[item]
+#     res = cal_single_delta_aic(y_spike, co_variate, gamma_, d_)
+# # plt.plot(y_spike)
+# # plt.show(block=True)
+
+nmf = NMF(n_components=1)
+coupling = nmf.fit_transform(trial1_binary[1:].reshape(728, 350))
+plt.subplot(211)
+plt.plot(co_variate[0], label='stimuli')
+plt.legend()
+plt.subplot(212)
+plt.plot(coupling, label='coupling', c='g')
+plt.legend()
+plt.show(block=True)
+
+plt.plot(trial1_binary[0])
+plt.title('calcium event')
 plt.show(block=True)
